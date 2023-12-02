@@ -32,40 +32,27 @@
 (check-expect (start-with# "a" dict) 2)
 (check-expect (start-with# "c" dict) 0)
 
-(define-struct letter-count [letter count])
-(define (update-letter-counts lcs)
-  (cons
-   (make-letter-count
-    (letter-count-letter (first lcs))
-    (+ 1 (letter-count-count (first lcs))))
-   (rest lcs)))
+(struct letter-count (letter count) #:transparent)
 
-(define olcs (list (make-letter-count "a" 1) (make-letter-count "b" 1)))
-(define nlcs (list (make-letter-count "a" 2) (make-letter-count "b" 1)))
-
-(check-expect (update-letter-counts olcs) nlcs)
 
 ;dictionary -> [list-of letter-count]
+;list of letter-count for count showed in _dict_
 (define (count-by-letter dict)
-  (cond
-    [(empty? dict) '()]
-    [else (let
-              ([count-result (count-by-letter (rest dict))]
-               [current-letter (string-ith (first dict) 0)])
-              (cond
-                [(empty? count-result)
-                 (cons (make-letter-count current-letter 1) '())]
-                [else
-                 (let
-                     ([current-result-letter (letter-count-letter (first count-result))])
-                  (cond
-                   [(string=? current-letter current-result-letter)
-                    (update-letter-counts count-result)]
-                   [else (cons (make-letter-count current-letter 1)
-                               count-result)]))]))]))
+  (match dict
+    ['() '()]
+    [(cons head '()) (cons (letter-count (string-ith head 0) 1) '())]
+    [(cons head tail)
+    (match-let* ([result (count-by-letter tail)]
+                 [dict-letter (string-ith head 0)]
+                 [(cons (letter-count lc-letter lc-count) result-tail) result])
+      (if (string=? dict-letter lc-letter)
+          (cons (letter-count lc-letter (+ lc-count 1))
+                result-tail)
+          (cons (letter-count dict-letter 1)
+                result)))]))
 
 (check-expect (count-by-letter '()) '())
-(check-expect (count-by-letter (list "apple")) (list (make-letter-count "a" 1)))
-(check-expect (count-by-letter dict) (list (make-letter-count "a" 2) (make-letter-count "b" 1)))
+(check-expect (count-by-letter (list "apple")) (list (letter-count "a" 1)))
+(check-expect (count-by-letter dict) (list (letter-count "a" 2) (letter-count "b" 1)))
 
 (test)
