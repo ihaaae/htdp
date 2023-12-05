@@ -90,4 +90,37 @@
 
 (check-expect (most-frequent (list "banana")) (letter-count "b" 1))
 (check-expect (most-frequent dict) (letter-count "a" 2))
+
+;Dictionary -> [list-of Dictionary]
+(define (words-by-first-letter dict)
+  (match dict
+    ['() '()]
+    [(cons head '()) (list dict)]
+    [(cons head tail)
+     (let* ([result (words-by-first-letter tail)]
+            [result-letter (string-ith (first (first result)) 0)]
+            [dict-letter (string-ith head 0)])
+       (if (string-ci=? result-letter dict-letter)
+           (cons (cons (first dict) (first result)) (rest result))
+           (cons (list (first dict)) result)))]))
+
+(check-expect (words-by-first-letter (list "apple" "after" "banana"))
+              (list (list "apple" "after") (list "banana")))
+
+(define (most-frequent.v2-help dics)
+  (match dics
+    ['() '()]
+    [(cons head '()) (letter-count (string-ith (first head) 0) (length head))]
+    [(cons head tail)
+     (let ([result (most-frequent.v2-help tail)])
+       (if (>= (length head) (letter-count-count result))
+           (letter-count (string-ith (first head) 0) (length head))
+           result))]))
+
+(define (most-frequent.v2 dict)
+  (most-frequent.v2-help (words-by-first-letter dict)))
+
+(check-expect (most-frequent.v2 (list "banana")) (letter-count "b" 1))
+(check-expect (most-frequent.v2 dict) (letter-count "a" 2))
+
 (test)
