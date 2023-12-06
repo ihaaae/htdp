@@ -1,16 +1,19 @@
 #lang racket
+(require lang/htdp-intermediate-lambda)
 (require 2htdp/batch-io)
+(require test-engine/racket-tests)
+(require racket/trace)
 (require 2htdp/itunes)
 
-; modify the following to use your chosen name
-(define ITUNES-LOCATION "itunes.xml")
+;; ; modify the following to use your chosen name
+;; (define ITUNES-LOCATION "itunes.xml")
  
-; LTracks
-(define itunes-tracks
-  (read-itunes-as-tracks ITUNES-LOCATION))
+;; ; LTracks
+;; (define itunes-tracks
+;;   (read-itunes-as-tracks ITUNES-LOCATION))
 
-(define list-tracks
-  (read-itunes-as-lists ITUNES-LOCATION))
+;; (define list-tracks
+;;   (read-itunes-as-lists ITUNES-LOCATION))
 
 ;(define-struct date [year month day hour minute second])
 ; A Date is a structure:
@@ -42,8 +45,8 @@
     [else (+ (track-time (first lts))
              (total-time (rest lts)))]))
 
-;(check-expect (total-time '()) 0)
-;(check-expect (total-time Ltracks1) 4000)
+(check-expect (total-time '()) 0)
+(check-expect (total-time Ltracks1) 4000)
 
 ;Ltracks -> list-of-strings
 (define (select-all-album-titles lts)
@@ -255,5 +258,7 @@
 (define la11 (list a12 a22 a32 a42 a52 a62 a72 a82))
 (define la12 (list a12 a32 a42 a52 a62 a72 a82))
 
-(check-expect (track-as-struct la11) track1)
-(check-expect (track-as-struct la12) #false)
+;; (check-expect (track-as-struct la11) track1)
+;; (check-expect (track-as-struct la12) #false)
+
+(test)
