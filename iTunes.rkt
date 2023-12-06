@@ -240,12 +240,6 @@
 ;LAssoc -> [Track Boolean]
 (define (track-as-struct las)
   (if (and (not (boolean? (find-association "" las #false)))
-           (not (boolean? (find-association "" las #false)))
-           (not (boolean? (find-association "" las #false)))
-           (not (boolean? (find-association "" las #false)))
-           (not (boolean? (find-association "" las #false)))
-           (not (boolean? (find-association "" las #false)))
-           (not (boolean? (find-association "" las #false)))
            (not (boolean? (find-association "" las #false))))
       (create-track ())
       #false))

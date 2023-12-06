@@ -37,22 +37,6 @@
 
 (struct letter-count (letter count) #:transparent)
 
-;dictionary -> [list-of letter-count]
-;list of letter-count for count showed in _dict_
-(define (count-by-letter dict)
-  (match dict
-    ['() '()]
-    [(cons head '()) (cons (letter-count (substring head 0 1) 1) '())]
-    [(cons head tail)
-     (match-let* ([result (count-by-letter tail)]
-                  [dict-letter (substring head 0 1)]
-                  [(cons (letter-count lc-letter lc-count) result-tail) result])
-       (if (string-ci=? dict-letter lc-letter)
-           (cons (letter-count lc-letter (+ lc-count 1))
-                 result-tail)
-           (cons (letter-count dict-letter 1)
-                 result)))]))
-
 ;[list-of string] [list-of string] -> [list-of letter-count]
 ;letter-count-list whose letter in _letters_ start the word in _dict_
 (define (count-by-letter-help letters dict)
@@ -65,44 +49,59 @@
            result
            (cons (letter-count head count) result)))]))
 
-(define (count-by-letter.v2 dict)
+;dictionary -> [list-of letter-count]
+;list of letter-count for count showed in _dict_
+(define (count-by-letter dict)
   (count-by-letter-help LETTERS dict))
 
-(check-expect (count-by-letter.v2 '()) '())
-(check-expect (count-by-letter.v2 (list "apple")) (list (letter-count "a" 1)))
-(check-expect (count-by-letter.v2 dict) (list (letter-count "a" 2) (letter-count "b" 1)))
+(check-expect (count-by-letter '()) '())
+(check-expect (count-by-letter (list "apple")) (list (letter-count "a" 1)))
+(check-expect (count-by-letter dict) (list (letter-count "a" 2) (letter-count "b" 1)))
 
-;[list-of letter-count] -> letter-count
+(define (lc>=? one two)
+  (>= (letter-count-count one) (letter-count-count two)))
+
+;[NElist-of letter-count] -> letter-count
 ;the letter-count in _lcs_ whose count is bigger 
 (define (most-frequent-help lcs)
   (match lcs
-    ['() '()]
     [(cons head '()) head]
-    [(cons head tail) (match-let* ([result (most-frequent-help tail)]
-                                   [(letter-count _ head-count) head]
-                                   [(letter-count _ result-count) result])
-                        (if (>= head-count result-count) head result))]))
+    [(cons head tail)
+     (let ([result (most-frequent-help tail)])
+       (if (lc>=? head result) head result))]))
 
 ;dictionary -> letter-count
 ;letter-count most frequent letter that start-with words in _dict_
 (define (most-frequent dict)
-  (most-frequent-help (count-by-letter.v2 dict)))
+  (match dict
+    ['() '()]
+    (most-frequent-help (count-by-letter dict))))
 
 (check-expect (most-frequent (list "banana")) (letter-count "b" 1))
 (check-expect (most-frequent dict) (letter-count "a" 2))
 
 ;Dictionary -> [list-of Dictionary]
-(define (words-by-first-letter dict)
+(define (words-start-with l dict)
   (match dict
     ['() '()]
-    [(cons head '()) (list dict)]
     [(cons head tail)
-     (let* ([result (words-by-first-letter tail)]
-            [result-letter (string-ith (first (first result)) 0)]
-            [dict-letter (string-ith head 0)])
-       (if (string-ci=? result-letter dict-letter)
-           (cons (cons (first dict) (first result)) (rest result))
-           (cons (list (first dict)) result)))]))
+     (let ([result (words-start-with l tail)])
+       (if (string-ci=? l (string-ith head 0))
+           (cons head result)
+           result))]))
+
+(define (words-by-first-letter dict)
+  (words-by-first-letter-help LETTERS dict))
+
+(define (words-by-first-letter-help letters dict)
+  (match letters
+    ['() '()]
+    [(cons head tail)
+     (let ([num (start-with# head dict)]
+           [result (words-by-first-letter-helper tail dict)])
+       (if (== num 0)
+           result
+           (cons (words-start-with head dict) result)))]))
 
 (check-expect (words-by-first-letter (list "apple" "after" "banana"))
               (list (list "apple" "after") (list "banana")))
