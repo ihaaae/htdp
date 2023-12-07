@@ -1,0 +1,9 @@
+﻿[1,2,3,4,5].*.rkt
+*.bak
+Ford_files
+*.rkt#
+*.txt
+*.html
+.#2.197.rkt
+*.dat
+*.xml
