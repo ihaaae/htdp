@@ -1,16 +1,19 @@
 #lang racket
+(require lang/htdp-intermediate-lambda)
 (require 2htdp/batch-io)
+(require test-engine/racket-tests)
+(require racket/trace)
 (require 2htdp/itunes)
 
-; modify the following to use your chosen name
-(define ITUNES-LOCATION "itunes.xml")
+;; ; modify the following to use your chosen name
+;; (define ITUNES-LOCATION "itunes.xml")
  
-; LTracks
-(define itunes-tracks
-  (read-itunes-as-tracks ITUNES-LOCATION))
+;; ; LTracks
+;; (define itunes-tracks
+;;   (read-itunes-as-tracks ITUNES-LOCATION))
 
-(define list-tracks
-  (read-itunes-as-lists ITUNES-LOCATION))
+;; (define list-tracks
+;;   (read-itunes-as-lists ITUNES-LOCATION))
 
 ;(define-struct date [year month day hour minute second])
 ; A Date is a structure:
@@ -37,129 +40,126 @@
 
 ;Ltracks -> Number
 (define (total-time lts)
-  (cond
-    [(empty? lts) 0]
-    [else (+ (track-time (first lts))
-             (total-time (rest lts)))]))
+  (match lts
+    ['() 0]
+    [(cons head tail)
+     (+ (track-time head) (total-time tail))]))
 
-;(check-expect (total-time '()) 0)
-;(check-expect (total-time Ltracks1) 4000)
+(check-expect (total-time '()) 0)
+(check-expect (total-time Ltracks1) 4000)
 
 ;Ltracks -> list-of-strings
 (define (select-all-album-titles lts)
-  (cond
-    [(empty? lts) '()]
-    [else
-     (cons (track-album (first lts))
-           (select-all-album-titles (rest lts)))]))
+  (match lts
+    ['() '()]
+    [(cons head tail)
+     (cons (track-album head)
+           (select-all-album-titles tail))]))
 
-;(check-expect (select-all-album-titles '()) '())
-;(check-expect (select-all-album-titles Ltracks1)
-;              (list "real mother fucker" "real mother fucker"))
+(check-expect (select-all-album-titles '()) '())
+(check-expect (select-all-album-titles Ltracks1)
+             (list "real mother fucker" "real mother fucker"))
 
 ;list-of-strings [list-of strings] -> list-of-strings
 (define (create-set los)
-  (cond
-    [(empty? los) '()]
-    [else
-     (if (member? (first los) (create-set (rest los)))
-         (create-set (rest los))
-         (cons (first los) (create-set (rest los))))]))
+  (match los
+    ['() '()]
+    [(cons head tail)
+     (let ([result (create-set tail)])
+       (if (member? head result)
+           result
+           (cons head result)))]))
 
-;(check-expect (create-set (list "a" "b" "c" "a")) (list "b" "c" "a"))
-;(check-expect (create-set '()) '())
-;(check-expect (create-set (list "a" "b" "c")) (list "a" "b" "c"))
-;(check-expect (create-set (list "a" "b" "a" "b")) (list "a" "b"))
+(check-expect (create-set (list "a" "b" "c" "a")) (list "b" "c" "a"))
+(check-expect (create-set '()) '())
+(check-expect (create-set (list "a" "b" "c")) (list "a" "b" "c"))
+(check-expect (create-set (list "a" "b" "a" "b")) (list "a" "b"))
 
 ;Ltracks -> list-of-string
 (define (select-album-titles/unique lts)
-  (cond
-    [(empty? lts) '()]
-    [else
-     (create-set
-      (cons (track-album (first lts))
-                       (select-all-album-titles (rest lts))))]))
+  (create-set (select-all-album-titles lts)))
 
-;(check-expect (select-album-titles/unique Ltracks1)
-;              (list "real mother fucker"))
+(check-expect (select-album-titles/unique Ltracks1)
+              (list "real mother fucker"))
 
 ;string LTracks -> LTracks
-(define (select-album at lts)
-  (cond
-    [(empty? lts) '()]
-    [else
-     (if (string=? (track-album (first lts)) at)
-         (cons (first lts) (select-album at (rest lts)))
-         (select-album at (rest lts)))]))
+(define (select-album album-title list-tracks)
+  (match list-tracks
+    ['() '()]
+    [(cons head tail)
+     (let ([result (select-album album-title tail)])
+       (if (string=? (track-album head) album-title)
+           (cons head result)
+           result))]))
 
-;(check-expect (select-album "real mother fucker" Ltracks2)
-;              (list track1 track2 track4))
-;(check-expect (select-album "fake mother fucker" Ltracks2)
-;              (list track3))
+(check-expect (select-album "real mother fucker" Ltracks2)
+             (list track1 track2 track4))
+(check-expect (select-album "fake mother fucker" Ltracks2)
+             (list track3))
+
+;LTracks Date -> LTracks
+(define (select-album-date-help list-tracts date)
+  (match list-tracts
+    ['() '()]
+    [(cons head tail)
+     (let ([result (select-album-date-help tail date)])
+       (if (Date-bigger (track-played head) date)
+           (cons head result)
+           result))]))
 
 ;string Date LTracks -> LTracks
-(define (select-album-date at id lts)
-  (cond
-    [(empty? lts) '()]
-    [else
-     (if (and (string=? (track-album (first lts)) at)
-               (Date-bigger (track-played (first lts)) id))
-          (cons (first lts) (select-album-date at id (rest lts)))
-          (select-album-date at id (rest lts)))]))
+(define (select-album-date album-title date list-tracks)
+  (select-album-date-help (select-album album-title list-tracks) date))
 
 ;(define-struct date [year month day hour minute second])
 ;Date Date -> boolean
 (define (Date-bigger dt1 dt2)
   (cond
     [(three-level-bigger (date-year dt1) (date-month dt1)
-                       (date-day dt1) (date-year dt2)
-                       (date-month dt2) (date-day dt2))
+                         (date-day dt1) (date-year dt2)
+                         (date-month dt2) (date-day dt2))
      #true]
-    [(and (= (date-year dt1) (date-year dt2))
-          (= (date-minute dt1)  (date-month dt2))
-          (= (date-day dt1) (date-day dt2)))
-     (cond
-       [(three-level-bigger (date-hour dt1) (date-minute dt1)
-                          (date-second dt1) (date-hour dt2)
-                          (date-minute dt2) (date-second dt2))
-        #true]
-       [else #false])]
+    [(and (and (= (date-year dt1) (date-year dt2))
+               (= (date-minute dt1)  (date-month dt2))
+               (= (date-day dt1) (date-day dt2)))
+          (three-level-bigger (date-hour dt1) (date-minute dt1)
+                              (date-second dt1) (date-hour dt2)
+                              (date-minute dt2) (date-second dt2)))
+     #true]
     [else #false]))
 
 ;number number number number number number -> boolean
 (define (three-level-bigger n1 n2 n3 nn1 nn2 nn3)
   (cond
     [(> n1 nn1) #true]
-    [(= n1 nn1)
-     (cond
-       [(> n2 nn2) #true]
-       [(= n2 nn2)
-        (cond
-          [(> n3 nn3) #true]
-          [else #false])]
-       [else #false])]
+    [(and (= n1 nn1) (> n2 nn2)) #true]
+    [(and (= n1 nn1) (= n2 nn2) (> n3 nn3)) #true]
     [else #false]))
 
-;(check-expect (three-level-bigger 3 3 4 3 3 2) #true)
-;(check-expect (three-level-bigger 3 3 4 4 3 4) #false)
+(check-expect (three-level-bigger 3 3 4 3 3 2) #true)
+(check-expect (three-level-bigger 3 3 4 4 3 4) #false)
 
-;(check-expect (Date-bigger date1 date2) #false)
-;(check-expect (Date-bigger date3 date2) #true)
+(check-expect (Date-bigger date1 date2) #false)
+(check-expect (Date-bigger date3 date2) #true)
 
-;(check-expect (select-album-date "real mother fucker" date2 Ltracks2) (list track2))
+(check-expect (select-album-date "real mother fucker" date2 Ltracks2) (list track2))
 
-; Ltracks [list-of string] -> [list-of Ltracks]
-(define (select-albums lts titles)
-  (cond
-    [(empty? titles) '()]
-    [else
-     (cons (select-album (first titles) lts)
-           (select-albums lts (rest titles)))]))
+; [List-of string] LTracks -> [List-of LTracks]
+(define (select-albums-help list-albums list-tracks)
+  (match list-albums
+    ['() '()]
+    [(cons head tail)
+     (cons (select-album head list-tracks)
+           (select-albums-help tail list-tracks))]))
 
-;(check-member-of
-; (select-albums Ltracks2 (select-album-titles/unique Ltracks2))
-; (list (list track1 track2 track4) (list track3))
-; (list (list track3) (list track1 track2 track4)))
+; LTracks -> [List-of LTracks]
+(define (select-albums list-tracks)
+  (select-albums-help (select-album-titles/unique list-tracks) list-tracks))
+
+(check-member-of
+ (select-albums Ltracks2)
+ (list (list track1 track2 track4) (list track3))
+ (list (list track3) (list track1 track2 track4)))
 
 ; An LAssoc is one of: 
 ; – '()
@@ -190,28 +190,24 @@
 (define ll1 (list la1 la2))
 
 ; string LAssoc Any -> [Assoc or Any]
-(define (find-association key la default)
-  (cond
-    [(empty? la) default]
-    [else
-     (if (string=? (first (first la)) key)
-         (first la)
-         (find-association key (rest la) default))]))
+(define (find-association key list-assoc default)
+  (let ([result (assoc key list-assoc)])
+    (cond
+      ((boolean? result) default)
+      [else result])))
 
-;(check-expect (find-association "play#" la1 "not found") a3)
-;(check-expect (find-association "artist" la1 "not found") "not found")
+(check-expect (find-association "play#" la1 "not found") a3)
+(check-expect (find-association "artist" la1 "not found") "not found")
 
 ;LLists -> Number
-(define (total-time/list lls)
-  (cond
-    [(empty? lls) 0]
-    [else
-     (if (boolean? (assoc "Total Time" (first lls)))
-         (total-time/list (rest lls))
-         (+ (first (rest (assoc "Total Time" (first lls))))
-            (total-time/list (rest lls))))]))
+(define (total-time/list list-Lists)
+  (match list-Lists
+    ['() 0]
+    [(cons head tail)
+     (+ (second (find-association "Total Time" head "not found"))
+        (total-time/list tail))]))
 
-;(check-expect (total-time/list ll1) 4000)
+(check-expect (total-time/list ll1) 4000)
 
 ;LLists -> [list-of string]
 (define (boolean-attributes lls)
@@ -238,11 +234,11 @@
 ;(check-expect (boolean-attributes/LAssoc la1) (list "Compilation"))
 
 ;LAssoc -> [Track Boolean]
-(define (track-as-struct las)
-  (if (and (not (boolean? (find-association "" las #false)))
-           (not (boolean? (find-association "" las #false))))
-      (create-track ())
-      #false))
+;; (define (track-as-struct las)
+;;   (if (and (not (boolean? (find-association "" las #false)))
+;;            (not (boolean? (find-association "" las #false))))
+;;       (create-track ())
+;;       #false))
 
 (define a12 (cons "album" (cons "real mother fucker" '())))
 (define a22 (cons "name" (cons "sex machine" '())))
@@ -255,5 +251,7 @@
 (define la11 (list a12 a22 a32 a42 a52 a62 a72 a82))
 (define la12 (list a12 a32 a42 a52 a62 a72 a82))
 
-(check-expect (track-as-struct la11) track1)
-(check-expect (track-as-struct la12) #false)
+;; (check-expect (track-as-struct la11) track1)
+;; (check-expect (track-as-struct la12) #false)
+
+(test)
