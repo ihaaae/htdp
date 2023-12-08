@@ -193,7 +193,7 @@
 (define (find-association key list-assoc default)
   (let ([result (assoc key list-assoc)])
     (cond
-      ((boolean? result) default)
+      [(boolean? result) default]
       [else result])))
 
 (check-expect (find-association "play#" la1 "not found") a3)
@@ -210,39 +210,58 @@
 (check-expect (total-time/list ll1) 4000)
 
 ;LLists -> [list-of string]
-(define (boolean-attributes lls)
-  (cond
-    [(empty? lls) '()]
-    [else
-     (if (> (length (boolean-attributes/LAssoc (first lls))) 0)
-         (create-set (append (boolean-attributes/LAssoc (first lls))
-                             (boolean-attributes (rest lls))))
-         (boolean-attributes (rest lls)))]))
+(define (boolean-attributes list-Lists)
+  (match list-Lists
+    ['() '()]
+    [(cons head tail)
+     (create-set (append (boolean-attributes/LAssoc head)
+                         (boolean-attributes tail)))]))
 
-;(check-expect (boolean-attributes ll1) (list "Compilation" "Visible"))
+(check-expect (boolean-attributes ll1) (list "Compilation" "Visible"))
 
 ;LAssoc -> [list-of string]
-(define (boolean-attributes/LAssoc las)
-  (cond
-    [(empty? las) '()]
-    [else
-     (if (not (boolean? (first (rest (first las)))))
-         (boolean-attributes/LAssoc (rest las))
-         (cons (first (first las))
-               (boolean-attributes/LAssoc (rest las))))]))
+(define (boolean-attributes/LAssoc list-Assoc)
+  (match list-Assoc
+    ['() '()]
+    [(cons head tail)
+     (let ([result (boolean-attributes/LAssoc tail)])
+       (if (boolean? (second head))
+           (cons (first head) result)
+           result))]))
 
-;(check-expect (boolean-attributes/LAssoc la1) (list "Compilation"))
+(check-expect (boolean-attributes/LAssoc la1) (list "Compilation"))
 
-;LAssoc -> [Track Boolean]
-;; (define (track-as-struct las)
-;;   (if (and (not (boolean? (find-association "" las #false)))
-;;            (not (boolean? (find-association "" las #false))))
-;;       (create-track ())
-;;       #false))
+;(define-struct track
+;  [name artist album time track# added play# played])
+; A Track is a structure:
+;   (make-track String String String N N Date N Date)
+
+;; LAssoc -> [Maybe List-of BDSN]
+;; the value in _list-Assoc_ of key in _list-keys_, return #f if one key doesn't exist
+(define (track-as-struct-help list-Assoc list-keys)
+  (match list-keys
+    ['() '()]
+    [(cons head tail)
+     (let ([query-result (assoc head list-Assoc)]
+           [result (track-as-struct-help list-Assoc tail)])
+       (cond
+         [(boolean? query-result) query-result]
+         [(boolean? result) result]
+         [else (cons (second query-result) result)]))]))
+
+(define attributes '("name" "artist" "album" "time" "track#" "added" "play#" "played"))
+;; LAssoc -> [Maybe Track]
+;; struct version _list-Assoc_. if can't transform, return #f
+(define (track-as-struct list-Assoc)
+  (let ([result (track-as-struct-help list-Assoc attributes)])
+    (if (boolean? result)
+        #f
+        (create-track (first result) (second result) (third result) (fourth result)
+                      (fifth result) (sixth result) (seventh result) (eighth result)))))
 
 (define a12 (cons "album" (cons "real mother fucker" '())))
 (define a22 (cons "name" (cons "sex machine" '())))
-(define a32 (cons "play#" (cons 1 '())))
+(define a32 (cons "play#" (cons 10 '())))
 (define a42 (cons "time" (cons 2000 '())))
 (define a52 (cons "track#" (cons 10 '())))
 (define a62 (cons "added" (cons date1 '())))
@@ -251,7 +270,12 @@
 (define la11 (list a12 a22 a32 a42 a52 a62 a72 a82))
 (define la12 (list a12 a32 a42 a52 a62 a72 a82))
 
-;; (check-expect (track-as-struct la11) track1)
-;; (check-expect (track-as-struct la12) #false)
+(check-expect (track-as-struct-help (list a12 a22) (list "album" "name"))
+              (list "real mother fucker" "sex machine"))
+(check-expect (track-as-struct-help (list a12 a22) (list "play#" "name"))
+              #f)
+
+(check-expect (track-as-struct la11) track1)
+(check-expect (track-as-struct la12) #false)
 
 (test)
