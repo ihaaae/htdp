@@ -1,3 +1,7 @@
+#lang racket
+(require lang/htdp-intermediate-lambda)
+(require test-engine/racket-tests)
+
 (define-struct no-info [])
 (define NONE (make-no-info))
  
@@ -16,7 +20,8 @@
                            87 'h NONE NONE)
                           NONE))
 
-;node number -> boolean
+;; node number -> boolean
+;; whether _a-node_ contains _n_ 
 (define (contains-bt? a-node n)
   (cond
     [(no-info? a-node) #false]
@@ -24,25 +29,26 @@
               (contains-bt? (node-left a-node) n)
               (contains-bt? (node-right a-node) n))]))
 
+(check-expect (contains-bt? (make-node 0 'd NONE NONE) 1) #false)
 (check-expect (contains-bt? node-a 24) #true)
 (check-expect (contains-bt? node-b 100) #false)
 
-;node number -> [Maybe Symbol]
+;; node number -> [Maybe Symbol]
+;; name of node in _a-bt_ whose ssn is _n_
 (define (search-bt a-bt n)
   (cond
-    [(no-info? a-bt) #false]
+    [(not (contains-bt? a-bt n)) #false]
     [else (cond
             [(= n (node-ssn a-bt)) (node-name a-bt)]
-            [(not (boolean? (search-bt (node-left a-bt) n)))
+            [(contains-bt? (node-left a-bt) n)
              (search-bt (node-left a-bt) n)]
-            [(not (boolean? (search-bt (node-right a-bt) n)))
-             (search-bt (node-right a-bt) n)]
-            [else #false])]))
+            [else (search-bt (node-right a-bt) n)])]))
 
 (check-expect (search-bt node-a 24) 'i)
 (check-expect (search-bt node-b 100) #false)
 
-;Node -> [List-of Number]
+;; Node -> [List-of Number]
+;; all ssn in _a-tree_ ordered by their position in _a-tree_ from left to right
 (define (inorder a-tree)
   (cond
     [(no-info? a-tree) '()]
@@ -57,7 +63,8 @@
                            24 'i NONE NONE)))
 (check-expect (inorder node-c) '(87 15 24))
 
-;Node Number -> Symbol
+;; Node Number -> Symbol
+;; the name of node in _a-bst_ whose ssn is _n_, return NONE if such ssn doesn't exist
 (define (search-bst a-bst n)
   (cond
     [(no-info? a-bst) NONE]
@@ -75,7 +82,8 @@
 (check-expect (search-bst bst-1 4) 'h)
 (check-expect (search-bst bst-1 24) NONE)
 
-; BST(Node) N S -> BST
+;; BST(Node) N S -> BST
+;; doesn't change the structure of _a-bst_, and add (make-node _n_ _s_ NONE NONE) to a NONE substring of _a-bst_
 (define (create-bst a-bst n s)
   (cond
     [(no-info? a-bst) (make-node n s NONE NONE)]
@@ -100,7 +108,21 @@
 
 (check-expect (create-bst bst-1 1 'a) bst-2)
 
+(define bst-left-one (make-node 29 'a
+                                (make-node 15 'a
+                                           (make-node 10 'a NONE NONE)
+                                           (make-node 24 'a NONE NONE))
+                                NONE))
+(define bst-right-one (make-node 89 'a
+                                 (make-node 77 'a NONE NONE)
+                                 (make-node 95 'a
+                                            NONE
+                                            (make-node 99 'a NONE NONE))))
+(define bst-one (make-node 63 'a bst-left-one bst-right-one))
+(check-expect (inorder bst-one) '(10 15 24 29 63 77 89 95 99))
+
 ; [NEList-of [List N S]] -> BST
+; build a BST with the list of _a-list_ in a way of create-bst
 (define (create-bst-from-list a-list)
   (cond
     [(empty? a-list) NONE]
@@ -109,4 +131,7 @@
                  (first (first a-list))
                  (second (first a-list)))}))
 
-(define l-1 '((99 o) (77 l) (24 i) (10 h) (95 g) (15 d) (89 c) (29 b) (63 a)))
+(define l-1 '((99 a) (77 a) (24 a) (10 a) (95 a) (15 a) (89 a) (29 a) (63 a)))
+(check-expect (create-bst-from-list l-1) bst-one)
+
+(test)
