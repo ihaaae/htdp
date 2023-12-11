@@ -39,6 +39,7 @@
 (define Ltracks2 (list track1 track2 track3 track4))
 
 ;Ltracks -> Number
+; the sum of time of each track in _lts_
 (define (total-time lts)
   (match lts
     ['() 0]
@@ -49,6 +50,7 @@
 (check-expect (total-time Ltracks1) 4000)
 
 ;Ltracks -> list-of-strings
+; list of name of each track in _lts_
 (define (select-all-album-titles lts)
   (match lts
     ['() '()]
@@ -61,6 +63,7 @@
              (list "real mother fucker" "real mother fucker"))
 
 ;list-of-strings [list-of strings] -> list-of-strings
+;remove duplicate element in _los_
 (define (create-set los)
   (match los
     ['() '()]
@@ -76,13 +79,15 @@
 (check-expect (create-set (list "a" "b" "a" "b")) (list "a" "b"))
 
 ;Ltracks -> list-of-string
+; list of album's name in _lts_ without duplicate
 (define (select-album-titles/unique lts)
   (create-set (select-all-album-titles lts)))
 
 (check-expect (select-album-titles/unique Ltracks1)
               (list "real mother fucker"))
 
-;string LTracks -> LTracks
+;; string LTracks -> LTracks
+;; list of tracks in _list-tracks_ whose album's name is _album-title_
 (define (select-album album-title list-tracks)
   (match list-tracks
     ['() '()]
@@ -97,7 +102,8 @@
 (check-expect (select-album "fake mother fucker" Ltracks2)
              (list track3))
 
-;LTracks Date -> LTracks
+;; LTracks Date -> LTracks
+;; list-of tracks in _list-tracks_ that played later than _date_
 (define (select-album-date-help list-tracts date)
   (match list-tracts
     ['() '()]
@@ -108,6 +114,7 @@
            result))]))
 
 ;string Date LTracks -> LTracks
+; list-of tracks in _list-tracks_ whose album's name is _album-title_ played after _date_
 (define (select-album-date album-title date list-tracks)
   (select-album-date-help (select-album album-title list-tracks) date))
 
@@ -115,29 +122,18 @@
 ;Date Date -> boolean
 (define (Date-bigger dt1 dt2)
   (cond
-    [(three-level-bigger (date-year dt1) (date-month dt1)
-                         (date-day dt1) (date-year dt2)
-                         (date-month dt2) (date-day dt2))
-     #true]
-    [(and (and (= (date-year dt1) (date-year dt2))
-               (= (date-minute dt1)  (date-month dt2))
-               (= (date-day dt1) (date-day dt2)))
-          (three-level-bigger (date-hour dt1) (date-minute dt1)
-                              (date-second dt1) (date-hour dt2)
-                              (date-minute dt2) (date-second dt2)))
-     #true]
-    [else #false]))
-
-;number number number number number number -> boolean
-(define (three-level-bigger n1 n2 n3 nn1 nn2 nn3)
-  (cond
-    [(> n1 nn1) #true]
-    [(and (= n1 nn1) (> n2 nn2)) #true]
-    [(and (= n1 nn1) (= n2 nn2) (> n3 nn3)) #true]
-    [else #false]))
-
-(check-expect (three-level-bigger 3 3 4 3 3 2) #true)
-(check-expect (three-level-bigger 3 3 4 4 3 4) #false)
+    [(> (date-year dt1) (date-year dt2)) #t]
+    [(< (date-year dt1) (date-year dt2)) #f]
+    [(> (date-month dt1) (date-month dt2)) #t]
+    [(< (date-month dt1) (date-month dt2)) #f]
+    [(> (date-day dt1) (date-day dt2)) #t]
+    [(< (date-day dt1) (date-day dt2)) #f]
+    [(> (date-hour dt1) (date-hour dt2)) #t]
+    [(< (date-hour dt1) (date-hour dt2)) #f]
+    [(> (date-minute dt1) (date-minute dt2)) #t]
+    [(< (date-minute dt1) (date-minute dt2)) #f]
+    [(> (date-hour dt1) (date-hour dt2)) #t]
+    [else #f]))
 
 (check-expect (Date-bigger date1 date2) #false)
 (check-expect (Date-bigger date3 date2) #true)
