@@ -1,39 +1,54 @@
 #lang racket
-; An Xexpr.v2 is a list: 
-; – (cons Symbol Body)
-; – (cons Symbol (cons [List-of Attribute] Body))
-; where Body is short for [List-of Xexpr.v2]
-; An Attribute is a list of two items:
-;   (cons Symbol (cons String '()))
+;; An Xexpr.v2 is a list:
+;; -(cons Symbol Body)
+;; where Body is the following
+;; [List-of Xexpr.v2]
+;; (cons [list-of Attribute] [List-of Xexpr.v2])
+;; An Atrribute is a list of two items:
+;; (cons Symbol (cons String '()))
 
-; -(cons Symbol bodies)
-;bodies:
-; body
-; (cons attributes bodies)
+(define (temp xex)
+  (let ([optional-loa+content (rest xex)])
+    (cond
+      [(empty? optional-loa+content) '()]
+      [else (let ([loa-or-x (first optional-loa+content)])
+              (if (list-of-attributes? loa-or-x)
+                  ... (rest loa-or-x) ...
+                  ... loa-or-x ...))])))
 
-<transition from="seen-e" to="seen-f" />
-'(trainsition ((from "seen-e") (to "seen-f")))
+;; <transition from="seen-e" to="seen-f" /> in Xexpr.v2
+(define transition (cons 'transition
+                         (cons (list (cons 'from (cons "seen-e" '()))
+                                     (cons 'to (cons "seen-f" '())))
+                               '())))
+(define transition-two '(trainsition ((from "seen-e") (to "seen-f"))))
 
-<ul><li><word /><word /></li><li><word /></li></ul>
-'(ul (li (word) (word)) (li (word))) xexpr.v1
+;; <word /> in Xexpr.v2
+(define word (cons 'word '()))
+;; <ul><li><word /><word /></li><li><word /></li></ul> in Xexpr.v2
+(define xexpr-one (cons 'ul
+                        (list (cons 'li
+                                    (list word word))
+                              (cons 'li
+                                    (list word)))))
+(define xexpr-one-two '(ul (li (word) (word)) (li (word))))
 
+(check-expect trainstion transition-two)
+(check-expect xexpr-one xexpr-one-two)
 
-'(server ((name "example.org")))
-<server name="example.org">
-'(carcas (board (grass)) (player ((name "sam"))))
-<carcas> <board><grass /></ board> <player name="same"></ carcas>
-'(start) xexpr.v0
-<start />
-
-;Xexpr.v2:
-;(cons Symbol optionalAttributes-and-Body)
-;optionalAttributes-and-Body:
-;(cons attributes body)
-;body
-;'()
-;body: '() or [List-of Xexpr.v2]
-;attributes: '() or [List-of attribute]
-;attribute: (cons Symbol (cons String '()))
+(define xexpr-two'(server ((name "example.org"))))
+;; correspond to <server name="example.org">
+(define xexpr-three '(carcas (board (grass))
+                         (player ((name "sam"))))) ; xexpr.v2
+(define xexpr-three-two (cons 'carcas (list (cons 'board
+                                                  (list (cons 'grass '())))
+                                            (cons 'player
+                                                  (cons (list (cons 'name (cons "sam" '())))
+                                                        '())))))
+(check-expect xexpr-three expr-three-two)
+;; correspond to <carcas> <board><grass /></ board> <player name="same"></ carcas>
+(define xexpr-b '(start)) ;xexpr.v0
+;; correspond to <start />
 
 (define a0 '((initial "X")))
  
@@ -62,10 +77,7 @@
 (check-expect (xexpr-attr e3) '())
 (check-expect (xexpr-attr e4) '((initial "X")))
 
-;listofattruibutes-or-Xexpr
-;[List-of Attribute]
-;Xexpr.v2
-; listofattruibutes-or-Xexpr -> Boolean
+; [List-of Attribute] or Xexpr.v2 -> Boolean
 ; is x a list of attributes
 (define (list-of-attributes? x)
   (cond
@@ -86,23 +98,19 @@
 
 ; Xerpr.v2 -> [List-of Xexpr.v2]
 (define (xexpr-content ex)
-  (cond
-    [(empty? (rest ex)) '()]
-    [(body? (rest ex)) (rest ex)]
-    [else (rest (rest ex))]))
+  (let [optional-loa+content (rest ex)]
+    (cond
+      [(empty? optional-loa+content) '()]
+      [else (let [loa-or-x (first optional-loa+content)]
+              (if (list-of-attributes? loa-or-x)
+                  (rest optional-loa+content)
+                  optional-loa+content))])))
 
 (check-expect (xexpr-content e0) '())
 (check-expect (xexpr-content e1) '())
 (check-expect (xexpr-content e2) '((action)))
 (check-expect (xexpr-content e3) '((action)))
 (check-expect (xexpr-content e4) '((action) (action)))
-
-;listofattruibutes-or-Xexpr
-;(first x) is Xerpr.v2 or [List-of attributes]
-(define (body? x)
-  (cond
-    [(list-of-attributes? (first x)) #false]
-    [else #true]))
 
 ;[List-of Attributes] Symbol -> {string or #false}
 (define (find-attr attributes-list the-attribute)
