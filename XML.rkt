@@ -87,31 +87,31 @@
      (local ((define possible-attribute (first x)))
        (cons? possible-attribute))]))
 
-;; ; Xexpr.v2 -> symbol
-;; (define (xexpr-name xe)
-;;   (first xe))
+; Xexpr.v2 -> symbol
+(define (xexpr-name xe)
+  (first xe))
 
-;; (check-expect (xexpr-name e0) 'machine)
-;; (check-expect (xexpr-name e1) 'machine)
-;; (check-expect (xexpr-name e2) 'machine)
-;; (check-expect (xexpr-name e3) 'machine)
-;; (check-expect (xexpr-name e4) 'machine)
+(check-expect (xexpr-name e0) 'machine)
+(check-expect (xexpr-name e1) 'machine)
+(check-expect (xexpr-name e2) 'machine)
+(check-expect (xexpr-name e3) 'machine)
+(check-expect (xexpr-name e4) 'machine)
 
-;; ; Xerpr.v2 -> [List-of Xexpr.v2]
-;; (define (xexpr-content ex)
-;;   (let [optional-loa+content (rest ex)]
-;;     (cond
-;;       [(empty? optional-loa+content) '()]
-;;       [else (let [loa-or-x (first optional-loa+content)]
-;;               (if (list-of-attributes? loa-or-x)
-;;                   (rest optional-loa+content)
-;;                   optional-loa+content))])))
+; Xerpr.v2 -> [List-of Xexpr.v2]
+(define (xexpr-content ex)
+  (let [(optional-loa+content (rest ex))]
+    (cond
+      [(empty? optional-loa+content) '()]
+      [else (let [(loa-or-x (first optional-loa+content))]
+              (if (list-of-attributes? loa-or-x)
+                  (rest optional-loa+content)
+                  optional-loa+content))])))
 
-;; (check-expect (xexpr-content e0) '())
-;; (check-expect (xexpr-content e1) '())
-;; (check-expect (xexpr-content e2) '((action)))
-;; (check-expect (xexpr-content e3) '((action)))
-;; (check-expect (xexpr-content e4) '((action) (action)))
+(check-expect (xexpr-content e0) '())
+(check-expect (xexpr-content e1) '())
+(check-expect (xexpr-content e2) '((action)))
+(check-expect (xexpr-content e3) '((action)))
+(check-expect (xexpr-content e4) '((action) (action)))
 
 ;; ;[List-of Attributes] Symbol -> {string or #false}
 ;; (define (find-attr attributes-list the-attribute)
