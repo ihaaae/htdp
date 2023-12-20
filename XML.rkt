@@ -8,14 +8,6 @@
 ;; An Atrribute is a list of two items:
 ;; (cons Symbol (cons String '()))
 
-;; (define (temp xex)
-;;   (let ([optional-loa+content (rest xex)])
-;;     (cond
-;;       [(empty? optional-loa+content) '()]
-;;       [else (let ([loa-or-x (first optional-loa+content)])
-;;               (if (list-of-attributes? loa-or-x)
-;;                   ... (rest loa-or-x) ...
-;;                   ... loa-or-x ...))])))
 
 ;; <transition from="seen-e" to="seen-f" /> in Xexpr.v2
 (define transition (cons 'transition
@@ -59,7 +51,7 @@
 (define e3 '(machine () (action)))
 (define e4 `(machine ,a0 (action) (action)))
 
-; Xexpr.v2 -> [List-of Attribute
+; Xexpr.v2 -> [List-of Attribute]
 ; retrieves the list of attributes of xe
 (define (xexpr-attr xe)
   (local ((define optional-loa+content (rest xe)))
@@ -112,6 +104,21 @@
 (check-expect (xexpr-content e2) '((action)))
 (check-expect (xexpr-content e3) '((action)))
 (check-expect (xexpr-content e4) '((action) (action)))
+
+;; Excercise 367
+(define (xexpr-attr/self-ref xex)
+  (let ([optional-loa+content (rest xex)])
+    (cond
+      [(empty? optional-loa+content) '()]
+      [else (let ([loa-or-x (first optional-loa+content)])
+              (if (list-of-attributes? loa-or-x)
+                  loa-or-x
+                  (map xexpr-attr/self-ref (rest xex))))])))
+;; This is a self-reference version of xexpr-attr.
+;; I think the answer is pretty obvious.
+;; The attributes of the son xexpr is not your attributes.
+;; Do I misunderstand the question.
+
 
 ;; ;[List-of Attributes] Symbol -> {string or #false}
 ;; (define (find-attr attributes-list the-attribute)
