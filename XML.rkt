@@ -119,17 +119,36 @@
 ;; The attributes of the son xexpr is not your attributes.
 ;; Do I misunderstand the question.
 
+;; Exercise 368
+;; formulate a data definition of function to replace _informal_ 'or'
+;; As function get either a [list-of attributes] or Xexpr.v2
+;; it should just be a formal forumlation
+;; Body-head is
+;; - [List-of-Attributes]
+;; - Xexpr.v2
+; Body-head -> Boolean
+; is x a list of attributes
+(define (list-of-attributes?.v2 x)
+  (cond
+    [(empty? x) #true]
+    [else
+     (local ((define possible-attribute (first x)))
+       (cons? possible-attribute))]))
+;; If there is a better way to distinguish the xexpr.v2 and [list-of att]
+;; like pattern match it would be better.
+;; use struct instead of list to represent Xexpr.v2 may be better
 
-;; ;[List-of Attributes] Symbol -> {string or #false}
-;; (define (find-attr attributes-list the-attribute)
-;;   (if (boolean? (assq the-attribute attributes-list))
-;;       #false
-;;       (second (assq the-attribute attributes-list))))
+;; [List-of Attributes] Symbol -> {string or #false}
+(define (find-attr attributes-list the-attribute)
+  (let [(result (assq the-attribute attributes-list))]
+    (if (boolean? result)
+        #false
+        (second result))))
 
-;; (check-expect (find-attr (xexpr-attr e0) 'initial) #false)
-;; (check-expect (find-attr (xexpr-attr e1) 'initial) "X")
-;; (check-expect (find-attr (xexpr-attr e2) 'initial) #false)
-;; (check-expect (find-attr (xexpr-attr e3) 'initial) #false)
-;; (check-expect (find-attr (xexpr-attr e4) 'initial) "X")
+(check-expect (find-attr (xexpr-attr e0) 'initial) #false)
+(check-expect (find-attr (xexpr-attr e1) 'initial) "X")
+(check-expect (find-attr (xexpr-attr e2) 'initial) #false)
+(check-expect (find-attr (xexpr-attr e3) 'initial) #false)
+(check-expect (find-attr (xexpr-attr e4) 'initial) "X")
 
 (test)
