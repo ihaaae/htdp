@@ -1,5 +1,5 @@
 #lang racket
-(require test-engine/racket-tests)
+
 ;; An Xexpr.v2 is a list:
 ;; -(cons Symbol Body)
 ;; where Body is the following
@@ -26,10 +26,12 @@
                                     (list word)))))
 (define xexpr-one-two '(ul (li (word) (word)) (li (word))))
 
-(check-expect transition transition-two)
-(check-expect xexpr-one xexpr-one-two)
+(module+ test
+  (require rackunit)
+  (check-equal? transition transition-two)
+  (check-equal? xexpr-one xexpr-one-two))
 
-(define xexpr-two'(server ((name "example.org"))))
+(define xexpr-two '(server ((name "example.org"))))
 ;; correspond to <server name="example.org">
 (define xexpr-three '(carcas (board (grass))
                          (player ((name "sam"))))) ; xexpr.v2
@@ -38,7 +40,9 @@
                                             (cons 'player
                                                   (cons (list (cons 'name (cons "sam" '())))
                                                         '())))))
-(check-expect xexpr-three xexpr-three-two)
+(module+ test
+  (require rackunit)
+  (check-equal? xexpr-three xexpr-three-two))
 ;; correspond to <carcas> <board><grass /></ board> <player name="same"></ carcas>
 (define xexpr-b '(start)) ;xexpr.v0
 ;; correspond to <start />
@@ -64,11 +68,13 @@
              loa-or-x
              '()))])))
 
-(check-expect (xexpr-attr e0) '())
-(check-expect (xexpr-attr e1) '((initial "X")))
-(check-expect (xexpr-attr e2) '())
-(check-expect (xexpr-attr e3) '())
-(check-expect (xexpr-attr e4) '((initial "X")))
+(module+ test
+  (require rackunit)
+  (check-equal? (xexpr-attr e0) '())
+  (check-equal? (xexpr-attr e1) '((initial "X")))
+  (check-equal? (xexpr-attr e2) '())
+  (check-equal? (xexpr-attr e3) '())
+  (check-equal? (xexpr-attr e4) '((initial "X"))))
 
 ; [List-of Attribute] or Xexpr.v2 -> Boolean
 ; is x a list of attributes
@@ -83,11 +89,13 @@
 (define (xexpr-name xe)
   (first xe))
 
-(check-expect (xexpr-name e0) 'machine)
-(check-expect (xexpr-name e1) 'machine)
-(check-expect (xexpr-name e2) 'machine)
-(check-expect (xexpr-name e3) 'machine)
-(check-expect (xexpr-name e4) 'machine)
+(module+ test
+  (require rackunit)
+  (check-equal? (xexpr-name e0) 'machine)
+  (check-equal? (xexpr-name e1) 'machine)
+  (check-equal? (xexpr-name e2) 'machine)
+  (check-equal? (xexpr-name e3) 'machine)
+  (check-equal? (xexpr-name e4) 'machine))
 
 ; Xerpr.v2 -> [List-of Xexpr.v2]
 (define (xexpr-content ex)
@@ -99,11 +107,13 @@
                   (rest optional-loa+content)
                   optional-loa+content))])))
 
-(check-expect (xexpr-content e0) '())
-(check-expect (xexpr-content e1) '())
-(check-expect (xexpr-content e2) '((action)))
-(check-expect (xexpr-content e3) '((action)))
-(check-expect (xexpr-content e4) '((action) (action)))
+(module+ test
+  (require rackunit)
+  (check-equal? (xexpr-content e0) '())
+  (check-equal? (xexpr-content e1) '())
+  (check-equal? (xexpr-content e2) '((action)))
+  (check-equal? (xexpr-content e3) '((action)))
+  (check-equal? (xexpr-content e4) '((action) (action))))
 
 ;; Excercise 367
 (define (xexpr-attr/self-ref xex)
@@ -145,10 +155,11 @@
         #false
         (second result))))
 
-(check-expect (find-attr (xexpr-attr e0) 'initial) #false)
-(check-expect (find-attr (xexpr-attr e1) 'initial) "X")
-(check-expect (find-attr (xexpr-attr e2) 'initial) #false)
-(check-expect (find-attr (xexpr-attr e3) 'initial) #false)
-(check-expect (find-attr (xexpr-attr e4) 'initial) "X")
+(module+ test
+  (require rackunit)
+  (check-equal? (find-attr (xexpr-attr e0) 'initial) #f)
+  (check-equal? (find-attr (xexpr-attr e1) 'initial) "X")
+  (check-equal? (find-attr (xexpr-attr e2) 'initial) #false)
+  (check-equal? (find-attr (xexpr-attr e3) 'initial) #false)
+  (check-equal? (find-attr (xexpr-attr e4) 'initial) "X"))
 
-(test)
