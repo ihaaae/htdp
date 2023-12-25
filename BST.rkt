@@ -4,7 +4,7 @@
 
 (define-struct no-info [])
 (define NONE (make-no-info))
- 
+
 (define-struct node [ssn name left right])
 ; A BT (short for BinaryTree) is one of:
 ; – NONE
@@ -13,7 +13,7 @@
 (define node-a (make-node 15 'd NONE
                           (make-node
                            24 'i NONE NONE)))
-     
+
 
 (define node-b (make-node 15 'd
                           (make-node
@@ -21,7 +21,7 @@
                           NONE))
 
 ;; node number -> boolean
-;; whether _a-node_ contains _n_ 
+;; whether _a-node_ contains _n_
 (define (contains-bt? a-node n)
   (cond
     [(no-info? a-node) #false]

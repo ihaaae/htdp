@@ -10,16 +10,16 @@
   (cond
     [(= 1 (string-length string)) (list (substring string 0 1))]
     [else (cons (substring string 0 1) (explode (substring string 1)))]))
-; A Letter is one of the following 1Strings: 
+; A Letter is one of the following 1Strings:
 ; – "a"
-; – ... 
+; – ...
 ; – "z"
-; or, equivalently, a member? of this list: 
+; or, equivalently, a member? of this list:
 (define LETTERS
    (explode "abcdefghijklmnopqrstuvwxyz"))
 
 ;(: start-with# (-> String (Listof String)))
-; number of words in dict that starts with _l_ 
+; number of words in dict that starts with _l_
 (define (start-with# letter dict)
   (define (start-with? word)
     (string-ci=? (substring word 0 1) letter))

@@ -7,7 +7,7 @@
 
 ;; ; modify the following to use your chosen name
 ;; (define ITUNES-LOCATION "itunes.xml")
- 
+
 ;; ; LTracks
 ;; (define itunes-tracks
 ;;   (read-itunes-as-tracks ITUNES-LOCATION))
@@ -25,7 +25,7 @@
 ; An LTracks is one of:
 ; – '()
 ; – (cons Track LTracks)
- 
+
 ;(define-struct track
 ;  [name artist album time track# added play# played])
 ; A Track is a structure:
@@ -157,14 +157,14 @@
  (list (list track1 track2 track4) (list track3))
  (list (list track3) (list track1 track2 track4)))
 
-; An LAssoc is one of: 
+; An LAssoc is one of:
 ; – '()
 ; – (cons Association LAssoc)
-; 
-; An Association is a list of two items: 
+;
+; An Association is a list of two items:
 ;   (cons String (cons BSDN '()))
- 
-; A BSDN is one of: 
+
+; A BSDN is one of:
 ; – Boolean
 ; – Number
 ; – String
