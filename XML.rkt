@@ -1,5 +1,5 @@
 #lang racket
-
+(require rackunit)
 ;; An Xexpr.v2 is a list:
 ;; -(cons Symbol Body)
 ;; where Body is the following
@@ -27,7 +27,6 @@
 (define xexpr-one-two '(ul (li (word) (word)) (li (word))))
 
 (module+ test
-  (require rackunit)
   (check-equal? transition transition-two)
   (check-equal? xexpr-one xexpr-one-two))
 
@@ -41,7 +40,6 @@
                                                   (cons (list (cons 'name (cons "sam" '())))
                                                         '())))))
 (module+ test
-  (require rackunit)
   (check-equal? xexpr-three xexpr-three-two))
 ;; correspond to <carcas> <board><grass /></ board> <player name="same"></ carcas>
 (define xexpr-b '(start)) ;xexpr.v0
@@ -69,7 +67,6 @@
              '()))])))
 
 (module+ test
-  (require rackunit)
   (check-equal? (xexpr-attr e0) '())
   (check-equal? (xexpr-attr e1) '((initial "X")))
   (check-equal? (xexpr-attr e2) '())
@@ -90,7 +87,6 @@
   (first xe))
 
 (module+ test
-  (require rackunit)
   (check-equal? (xexpr-name e0) 'machine)
   (check-equal? (xexpr-name e1) 'machine)
   (check-equal? (xexpr-name e2) 'machine)
@@ -108,7 +104,6 @@
                   optional-loa+content))])))
 
 (module+ test
-  (require rackunit)
   (check-equal? (xexpr-content e0) '())
   (check-equal? (xexpr-content e1) '())
   (check-equal? (xexpr-content e2) '((action)))
@@ -156,10 +151,37 @@
         (second result))))
 
 (module+ test
-  (require rackunit)
   (check-equal? (find-attr (xexpr-attr e0) 'initial) #f)
   (check-equal? (find-attr (xexpr-attr e1) 'initial) "X")
   (check-equal? (find-attr (xexpr-attr e2) 'initial) #false)
   (check-equal? (find-attr (xexpr-attr e3) 'initial) #false)
   (check-equal? (find-attr (xexpr-attr e4) 'initial) "X"))
 
+; An XWord is '(word ((text String))).
+(define xw1 '(word ((text "liu"))))
+(define xw1-cons (cons 'word
+                       (cons
+                        (list
+                         (cons 'text (cons "liu" '())))
+                        '())))
+(define xw2 '(word ((text "hit"))))
+(define xw3 '(word ((text "snow"))))
+
+(module+ test
+  (check-equal? xw1 xw1-cons))
+
+;xexpr.v2 -> boolean
+(define (word? an-any)
+  (and (symbol=? 'word (xexpr-name an-any))
+       (string? (find-attr (xexpr-attr an-any) 'text))))
+
+(module+ test
+  (check-equal? (word? xw1) #true)
+  (check-equal? (word? e4) #false))
+
+;XWord -> String
+(define (word-text xw)
+  (find-attr (xexpr-attr xw) 'text))
+
+(module+ test
+ (check-equal? (word-text xw1) "liu"))
