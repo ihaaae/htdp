@@ -185,3 +185,36 @@
 
 (module+ test
  (check-equal? (word-text xw1) "liu"))
+
+(require 2htdp/image)
+
+(define SIZE 12) ; font size
+(define COLOR "black") ; font color
+(define BT ; a graphical constant
+  (beside (circle 1 'solid 'BLACK) (text " " SIZE COLOR)))
+
+(define xitem1 (cons 'li (cons xw1 '())))
+(define xitem2 (cons 'li (cons (list (cons 'xitem2 (cons "no use" '())))
+                               (cons xw2 '()))))
+(define xitem3 (cons 'li (cons xw3 '())))
+(define xitem4 (cons 'li (cons (list (cons 'xitem4 (cons "no use" '())))
+                               (cons xw3 '()))))
+
+; XItem.v1 -> Image
+; renders an item as a "word" prefixed by a bullet
+(define (render-item1 i)
+  (local ((define content (xexpr-content i))
+          (define element (first content))
+          (define a-word (word-text element))
+          (define item (text a-word 12 'black)))
+    (beside/align 'center BT item)))
+
+(module+ test
+  (check-equal? (render-item1 xitem1) (beside/align 'center BT (text "liu" 12 'black)))
+  (check-equal? (render-item1 xitem2) (beside/align 'center BT (text "hit" 12 'black)))
+  (check-equal? (render-item1 xitem3) (beside/align 'center BT (text "snow" 12 'black)))
+  (check-equal? (render-item1 xitem4) (beside/align 'center BT (text "snow" 12 'black))))
+
+(define xenum1 (cons 'ul (list xitem1 xitem2)))
+(define xenum2 (cons 'ul (cons (list (cons 'xenum2 (cons "no use" '())))
+                               (list xitem3 xitem4))))
