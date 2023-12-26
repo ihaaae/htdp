@@ -257,8 +257,8 @@
 (define xenum2 (cons 'ul (cons (list (cons 'xenum2 (cons "no use" '())))
                                (list xitem3 xitem4))))
 
-(define xitem5 (cons 'ul (cons xenum1 '())))
-(define xitem6 (cons 'ul (cons (list (cons 'xitem6 (cons "no use" '())))
+(define xitem5 (cons 'li (cons xenum1 '())))
+(define xitem6 (cons 'li (cons (list (cons 'xitem6 (cons "no use" '())))
                                (list xenum2))))
 
 (define e1-rendered
@@ -349,9 +349,9 @@
       [(word? content)
        (cons 'li (cons attrs (cons (replace-word/word content old new) '())))]
       [(empty? attrs)
-       (cons 'ul (cons (replace-word content old new) '()))]
+       (cons 'li (cons (replace-word content old new) '()))]
       [else
-       (cons 'ul (cons attrs (cons (replace-word content old new) '())))])))
+       (cons 'li (cons attrs (cons (replace-word content old new) '())))])))
 
 (define (replace-word/word word old new)
   (if (string=? old (word-text word))
