@@ -215,6 +215,72 @@
   (check-equal? (render-item1 xitem3) (beside/align 'center BT (text "snow" 12 'black)))
   (check-equal? (render-item1 xitem4) (beside/align 'center BT (text "snow" 12 'black))))
 
+
+;; Exercise 373
+
+; An XItem.v2 is one of:
+; – (cons 'li (cons XWord '()))
+; – (cons 'li (cons [List-of Attribute] (list XWord)))
+; – (cons 'li (cons XEnum.v2 '()))
+; – (cons 'li (cons [List-of Attribute] (list XEnum.v2)))
+;
+; An XEnum.v2 is one of:
+; – (cons 'ul [List-of XItem.v2])
+; – (cons 'ul (cons [List-of Attribute] [List-of XItem.v2]))
+
+; Image -> Image
+; marks item with bullet
+(define (bulletize item)
+  (beside/align 'center BT item))
+
+; XEnum.v2 -> Image
+; renders an XEnum.v2 as an image
+(define (render-enum xe)
+  (local ((define content (xexpr-content xe))
+          ; XItem.v2 Image -> Image
+          (define (deal-with-one item so-far)
+            (above/align 'left (render-item item) so-far)))
+    (foldr deal-with-one empty-image content)))
+
+; XItem.v2 -> Image
+; renders one XItem.v2 as an image
+(define (render-item an-item)
+  (local ((define content (first (xexpr-content an-item))))
+    (bulletize
+      (cond
+        [(word? content)
+         (text (word-text content) SIZE COLOR)]
+        [else (render-enum content)]))))
+
+;; Exercise 373: test cases for render-enum and render-item
 (define xenum1 (cons 'ul (list xitem1 xitem2)))
 (define xenum2 (cons 'ul (cons (list (cons 'xenum2 (cons "no use" '())))
                                (list xitem3 xitem4))))
+
+(define xitem5 (cons 'ul (cons xenum1 '())))
+(define xitem6 (cons 'ul (cons (list (cons 'xitem6 (cons "no use" '())))
+                               (list xenum2))))
+
+(define e1-rendered
+  (above/align
+   'left
+   (beside/align 'center BT (text "liu" 12 'black))
+   (beside/align 'center BT (text "hit" 12 'black))))
+
+(define e2-rendered
+  (above/align
+   'left
+   (beside/align 'center BT (text "snow" 12 'black))
+   (beside/align 'center BT (text "snow" 12 'black))))
+
+(define i5-rendered
+  (beside/align 'center BT e1-rendered))
+
+(define i6-rendered
+  (beside/align 'center BT e2-rendered))
+
+(module+ test
+  (check-equal? (render-enum xenum1) e1-rendered)
+  (check-equal? (render-enum xenum2) e2-rendered)
+  (check-equal? (render-item xitem5) i5-rendered)
+  (check-equal? (render-item xitem6) i6-rendered))
