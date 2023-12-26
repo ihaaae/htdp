@@ -327,3 +327,44 @@
   (check-equal? (find-word xenum3 "hello") 2)
   (check-equal? (find-word/item xitem3 "hello") 0)
   (check-equal? (find-word/item xitem7 "hello") 1))
+
+;; Exercise 377
+;; XEnum.v2 string string -> XEnum.v2
+;; replace all ~old~ in ~xe~ with ~new~
+(define (replace-word xe old new)
+  (let ([replaced-items
+         (foldr (lambda (item so-far) (cons (replace-word/item item old new) so-far))
+                '()
+                (xexpr-content xe))])
+  (cond
+    [(empty? (xexpr-attr xe)) (cons 'ul replaced-items)]
+    [else (cons 'ul (cons (xexpr-attr xe) replaced-items))])))
+
+(define (replace-word/item xi old new)
+  (let ([content (first (xexpr-content xi))]
+        [attrs (xexpr-attr xi)])
+    (cond
+      [(and (word? content) (empty? attrs))
+       (cons 'li (cons (replace-word/word content old new) '()))]
+      [(word? content)
+       (cons 'li (cons attrs (cons (replace-word/word content old new) '())))]
+      [(empty? attrs)
+       (cons 'ul (cons (replace-word content old new) '()))]
+      [else
+       (cons 'ul (cons attrs (cons (replace-word content old new) '())))])))
+
+(define (replace-word/word word old new)
+  (if (string=? old (word-text word))
+      (cons 'word
+            (cons (list (cons 'text (cons new '())))
+                  '()))
+      word))
+
+(define xw5 '(word ((text "bye"))))
+(define xitem8 (cons 'li (cons xw5 '())))
+(define xenum4 (cons 'ul (list xitem8 xitem2 xitem3 xitem4 xitem6 xitem8)))
+
+(module+ test
+  (check-equal? (replace-word/word xw4 "hello" "bye") xw5)
+  (check-equal? (replace-word/item xitem7 "hello" "bye") xitem8)
+  (check-equal? (replace-word xenum3 "hello" "bye") xenum4))
