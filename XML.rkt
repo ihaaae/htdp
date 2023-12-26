@@ -284,3 +284,15 @@
   (check-equal? (render-enum xenum2) e2-rendered)
   (check-equal? (render-item xitem5) i5-rendered)
   (check-equal? (render-item xitem6) i6-rendered))
+
+;; Exercise 374
+
+; An XItem.v2 is one of:
+; – (cons 'li (cons XWord '()))
+; – (cons 'li (cons [List-of Attribute] (cons XWord '())))
+; – (cons 'li (cons XEnum.v2 '()))
+; – (cons 'li (cons [List-of Attribute] (cons XEnum.v2 '())))
+;
+; An XEnum.v2 is one of:
+; – (cons 'ul [List-of XItem.v2])
+; – (cons 'ul (cons [List-of Attribute] [List-of XItem.v2]))
