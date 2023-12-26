@@ -296,3 +296,34 @@
 ; An XEnum.v2 is one of:
 ; – (cons 'ul [List-of XItem.v2])
 ; – (cons 'ul (cons [List-of Attribute] [List-of XItem.v2]))
+
+;; Exercise 375
+;; should change the expression ~(beside/align 'center BT ...)~ into a function.
+;; It's trival and I am too lazy to this.
+
+;; Exercise 376
+; XEnum.v2 string -> Number
+; count all "hello"s in the XEnum ~xe~
+(define (find-word xe word)
+  (foldl (lambda (item num) (+ num (find-word/item item word)))
+         0
+         (xexpr-content xe)))
+
+; XItem.v2 string -> Number
+; count all "hello" in the XItem ~xi~
+(define (find-word/item xi word)
+  (let ([content (first (xexpr-content xi))])
+   (cond
+     [(word? content)
+      (if (string=? word (word-text content)) 1 0)]
+     [else (find-word content word)])))
+
+(define xw4 '(word ((text "hello"))))
+(define xitem7 (cons 'li (cons xw4 '())))
+(define xenum3 (cons 'ul (list xitem7 xitem2 xitem3 xitem4 xitem6 xitem7)))
+
+(module+ test
+  (check-equal? (find-word xenum2 "hello") 0)
+  (check-equal? (find-word xenum3 "hello") 2)
+  (check-equal? (find-word/item xitem3 "hello") 0)
+  (check-equal? (find-word/item xitem7 "hello") 1))
