@@ -368,3 +368,46 @@
   (check-equal? (replace-word/word xw4 "hello" "bye") xw5)
   (check-equal? (replace-word/item xitem7 "hello" "bye") xitem8)
   (check-equal? (replace-word xenum3 "hello" "bye") xenum4))
+
+;; Exercise 378
+
+(require 2htdp/universe)
+
+; An FSM is a [List-of 1Transition]
+; A 1Transition is a list of two items:
+;   (cons FSM-State (cons FSM-State '()))
+; An FSM-State is a String that specifies a color
+
+; An FSM-State is a String that specifies a color
+(struct statekey (state key))
+
+; data examples
+(define fsm-traffic
+  `(("red" ,(statekey "green" "a"))
+    ("green" ,(statekey "yellow" "b"))
+    ("yellow" ,(statekey "red" "c"))))
+
+; FSM-State FSM -> FSM-State
+; matches the keys pressed by a player with the given FSM
+(define (simulate state0 transitions)
+  (big-bang state0 ; FSM-State
+    [to-draw
+      (lambda (current)
+        (overlay (text current 12 'black) (square 100 "solid" current)))]
+    [on-key
+      (lambda (current key-event)
+        (if (key=? key-event (statekey-key (find transitions current)))
+            (statekey-state (find transitions current))
+            (error "Wrong key ")))]))
+
+; [X Y] [List-of [List X Y]] X -> Y
+; finds the matching Y for the given X in alist
+(define (find alist x)
+  (local ((define fm (assoc x alist)))
+    (if (cons? fm) (second fm) (error "not found"))))
+
+(define fsm-traffic-original
+  '(("red" "green") ("green" "yellow") ("yellow" "red")))
+
+(module+ test
+  (check-equal? (find fsm-traffic-original "red") "green"))
