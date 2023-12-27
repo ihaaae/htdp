@@ -369,7 +369,7 @@
   (check-equal? (replace-word/item xitem7 "hello" "bye") xitem8)
   (check-equal? (replace-word xenum3 "hello" "bye") xenum4))
 
-;; Exercise 378
+;; Exercise 378, 379, 380
 
 (require 2htdp/universe)
 
@@ -382,14 +382,14 @@
 (struct statekey (state key))
 
 ; data examples
-(define fsm-traffic
+(define fsm-traffic.v
   `(("red" ,(statekey "green" "a"))
     ("green" ,(statekey "yellow" "b"))
     ("yellow" ,(statekey "red" "c"))))
 
 ; FSM-State FSM -> FSM-State
 ; matches the keys pressed by a player with the given FSM
-(define (simulate state0 transitions)
+(define (simulate.v state0 transitions)
   (big-bang state0 ; FSM-State
     [to-draw
       (lambda (current)
@@ -406,8 +406,82 @@
   (local ((define fm (assoc x alist)))
     (if (cons? fm) (second fm) (error "not found"))))
 
-(define fsm-traffic-original
+(define fsm-traffic
   '(("red" "green") ("green" "yellow") ("yellow" "red")))
 
 (module+ test
-  (check-equal? (find fsm-traffic-original "red") "green"))
+  (check-equal? (find fsm-traffic "red") "green"))
+
+
+;; Exercise 381
+
+;; data definition
+; An XMachine is a nested list of this shape:
+;   (cons 'machine (cons (list ('initial FSM-State)) [list-of X1T]))
+; An X1T is a nested list of this shape:
+;    (cons 'action (cons (list (cons 'state (cons FSM-State '()))
+;                              (cons 'next (cons FSM-State '()))
+;                        '())))
+
+; XMachine is XExpr with (cons symbol (cons [attrs] [xexprs]))
+; X1T is XExpr with (cons symbol (cons [attrs] '()))
+; attrs can't apear alone, therefoe, there must be a empty body
+
+;; data example
+(define xm0
+  '(machine ((initial "red"))
+            (action ((state "red") (next "green")))
+            (action ((state "green") (next "yellow")))
+            (action ((state "yellow") (next "red")))))
+
+;; Exercise 382
+(define xm1
+  '(machine ((initial "white"))
+            (action ((state "white") (next "black")))
+            (action ((state "black") (next "white")))))
+
+;; Exercise 383
+
+; FSM-State FSM -> FSM-State
+; matches the keys pressed by a player with the given FSM
+(define (simulate state0 transitions)
+  (big-bang state0 ; FSM-State
+    [to-draw
+      (lambda (current)
+        (square 100 "solid" current))]
+    [on-key
+      (lambda (current key-event)
+        (find transitions current))]))
+
+;; The book has designed the data representation and provide data example
+;; In a other word, the book finished the 1st step of design recipe
+;; Exercise 381 let us refine it
+;; Exercise 382 let use define another data example
+;; therefore we engage in design recipe
+
+; XMachine -> FSM-State
+; interprets the given configuration as a state machine
+(define (simulate-xmachine xm)
+  (simulate (xm-state0 xm) (xm->transitions xm)))
+
+; XMachine -> FSM-State
+; extracts and translates the transition table from xm0
+
+(module+ test
+  (check-equal? (xm-state0 xm0) "red"))
+
+(define (xm-state0 xm0)
+  (find-attr (xexpr-attr xm0) 'initial))
+
+; XMachine -> [List-of 1Transition]
+; extracts the transition table from xm
+
+(module+ test
+  (check-equal? (xm->transitions xm0) fsm-traffic))
+
+(define (xm->transitions xm)
+  (local (; X1T -> 1Transition
+          (define (xaction->action xa)
+            (list (find-attr (xexpr-attr xa) 'state)
+                  (find-attr (xexpr-attr xa) 'next))))
+    (map xaction->action (xexpr-content xm))))
