@@ -211,7 +211,51 @@
     (db (filter keep? schema)
         (map row-project content))))
 
+(module+ test
+  (check-equal?
+   (db-content (project.v3 school-db '("Name" "Present")))
+   projected-content))
+
+(define (project db-one labels)
+  (define schema  (db-schema db-one))
+  (define content (db-content db-one))
+
+  ; Spec -> Boolean
+  ; does his column belong to the new schema
+  (define (keep? c)
+    (member? (first c) labels))
+
+  ; Row -> Row
+  ; retains those columns whose name is in labels
+  (define (row-project row)
+    (foldr (lambda (cell m c) (if m (cons cell c) c))
+           '()
+           row
+           mask))
+  (define mask (map keep? schema))
+  (db (filter keep? schema)
+           (map row-project content)))
+
   (module+ test
     (check-equal?
-     (db-content (project.v3 school-db '("Name" "Present")))
+     (db-content (project school-db '("Name" "Present")))
      projected-content))
+
+;; Exercise 408
+;; db [label] (row -> boolean) -> [row]
+(define (select db-one labels pred)
+  (define schema (db-schema db-one))
+  (define content (db-content db-one))
+  (db-content
+   (project
+    (db schema
+        (filter pred content))
+    labels)))
+
+(module+ test
+  (define selected-content
+    `(("Alice" #true)
+      ("Carol" #true)))
+  (check-equal?
+   (select school-db '("Name" "Present") (lambda (row) (third row)))
+   selected-content))
