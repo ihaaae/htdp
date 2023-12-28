@@ -125,7 +125,7 @@
 ;  Stop! Read this test carefully. What's wrong?
 (module+ test
   (check-equal?
-   (db-content (project school-db '("Name" "Present")))
+   (db-content (project.v1 school-db '("Name" "Present")))
    projected-content))
 
 (define (member? x ys)
@@ -133,7 +133,7 @@
       #f
       #t))
 
-(define (project db-one labels)
+(define (project.v1 db-one labels)
   (let ([schema  (db-schema db-one)]
         [content (db-content db-one)])
         ; Spec -> Boolean
@@ -155,9 +155,63 @@
                        (row-filter (rest row) (rest names)))
                  (row-filter (rest row) (rest names)))]))
     (db (filter keep? schema)
-        (map row-project content)))
+        (map row-project content))))
 
 (module+ test
   (define row-one '("Alice" 35 #true))
   (define names-one '("Name" "present"))
   (define projected-row-one '("Alice" #true)))
+
+;; Exercise 406
+(define (project.v2 db-one labels)
+  (let* ([schema  (db-schema db-one)]
+         [content (db-content db-one)]
+         [old-labels (map first schema)])
+        ; Spec -> Boolean
+        ; does this spec belong to the new schema
+        (define (keep? c) (member? (first c) labels))
+        ; Row -> Row
+        ; retains those columns whose name is in labels
+        (define (row-project row) (row-filter row old-labels))
+        ; Row [List-of Label] -> Row
+        ; retains those cells whose corresponding element
+        ; in names is also in labels
+        ;; _assume_ row and names has the same length
+        (define (row-filter row names)
+          (cond
+            [(empty? row) '()]
+            [else
+             (if (member? (first names) labels)
+                 (cons (first row)
+                       (row-filter (rest row) (rest names)))
+                 (row-filter (rest row) (rest names)))]))
+    (db (filter keep? schema)
+        (map row-project content))))
+
+  (module+ test
+    (check-equal?
+     (db-content (project.v2 school-db '("Name" "Present")))
+     projected-content))
+
+;; Exercise 407
+(define (project.v3 db-one labels)
+  (let* ([schema  (db-schema db-one)]
+         [content (db-content db-one)]
+         [old-labels (map first schema)])
+        ; Spec -> Boolean
+        ; does this spec belong to the new schema
+        (define (keep? c) (member? (first c) labels))
+        ; Row -> Row
+        ; retains those columns whose name is in labels
+        (define (row-project row)
+          (foldr (lambda (cell name r)
+                   (if (member? name labels) (cons cell r) r))
+                 '()
+                 row old-labels))
+    (db (filter keep? schema)
+        (map row-project content))))
+
+  (module+ test
+    (check-equal?
+     (db-content (project.v3 school-db '("Name" "Present")))
+     projected-content))
