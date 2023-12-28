@@ -70,3 +70,31 @@
         (spec "Description" string?)))
 
 (define presence-db/a (db presence-schema/a presence-content))
+
+; DB -> Boolean
+; do all rows in db satisfy (I1) and (I2)
+
+(module+ test
+  (check-equal? (integrity-check school-db) #true)
+  (check-equal? (integrity-check presence-db) #true))
+
+(define (integrity-check db)
+  #false)
+
+;; Exercise 404
+; [X Y] (X Y -> Boolean) [X] [Y] -> Boolean
+; if all results of (~pred~ X Y) is true, return #t;
+; otherwise #f
+; _assume_ the two lists are of equal length
+(define (andmap2 pred list-one list-two)
+  (cond
+    [(empty? list-one) #t]
+    [else
+     (if (pred (first list-one) (first list-two))
+         (andmap2 pred (rest list-one) (rest list-two))
+         #f)]))
+
+(module+ test
+  (define x-one (list 1 2 3))
+  (define y-one (list "a" "ab" "abc"))
+  (check-equal? (andmap2 (lambda (x y) (= x (string-length y))) x-one y-one) #t))
