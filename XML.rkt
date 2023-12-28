@@ -485,3 +485,52 @@
             (list (find-attr (xexpr-attr xa) 'state)
                   (find-attr (xexpr-attr xa) 'next))))
     (map xaction->action (xexpr-content xm))))
+
+
+;; Exercise 386
+
+; An Xexpr.v3 is one of:
+;  – Symbol
+;  – String
+;  – Number
+;  – (cons Symbol (cons Attribute*.v3 [List-of Xexpr.v3]))
+;  – (cons Symbol [List-of Xexpr.v3])
+; 
+; An Attribute*.v3 is a [List-of Attribute.v3].
+;   
+; An Attribute.v3 is a list of two items:
+;   (list Symbol String)
+
+; Xexpr.V3 string -> [Maybe string]
+; retrieves the value of content if the value of "itemprop" is ~s~
+; #false if doesn't have a attribute called "itemprop" or the value ain't ~s~
+(define (get-xexpr x s)
+  (cond
+    [(string? x) #f]
+    [(symbol? x) #f]
+    [(number? x) #f]
+    [(empty? (xexpr-attr x)) #f]
+    [else (get-attrs (xexpr-attr x) s)]))
+
+; Attribute*.v3 string -> [Maybe string]
+(define (get-attrs attr* s)
+  (let ([result1 (assoc 'itemprop attr*)]
+        [result2 (assoc 'content attr*)])
+    (if (and (cons? result1) (cons? result2) (string=? (second result1) s))
+        (second result2)
+        #f)))
+
+; Xexpr.v3 String -> String
+; retrieves the value of the "content" attribute 
+; from a 'meta element that has attribute "itemprop"
+; with value s
+(module+ test
+  (check-equal?
+   (get '(meta ((content "+1") (itemprop "F"))) "F")
+   "+1"))
+ 
+(define (get x s)
+  (local ((define result (get-xexpr x s)))
+    (if (string? result)
+        result
+        (error "not found"))))
