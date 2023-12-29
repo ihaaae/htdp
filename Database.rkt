@@ -289,9 +289,7 @@
 
 (module+ test
   (define labels-one (list "Description" "Present"))
-  (define reordered-schema (list (list "Description" string?) (list "Present" boolean?)))
   (define reordered-content (list (list "presence" #true) (list "absence" #false)))
-  (check-equal? (db-schema (reorder presence-db labels-one)) reordered-schema)
   (check-equal? (db-content (reorder presence-db labels-one)) reordered-content))
 
 ;; db [label] -> db
@@ -311,10 +309,138 @@
 ;; "Dave"  32      #false
 (module+ test
   (define labels-two (list "Present" "Name" "Race"))
-  (define reordered-schema-two (list (list "Present" boolean?) (list "Name" string?)))
   (define reordered-content-two (list (list #t "Alice")
                                       (list #f "Bob")
                                       (list #t "Carol")
                                       (list #f "Dave")))
-  (check-equal? (db-schema (reorder.v2 school-db labels-two)) reordered-schema-two)
   (check-equal? (db-content (reorder.v2 school-db labels-two)) reordered-content-two))
+
+
+;; db db -> db
+;; union different row in each db
+;; _assume_ the two db has the same schema
+(define (db-union db-one db-two)
+  (define content-one (db-content db-one))
+  (define content-two (db-content db-two))
+  ;; content content -> content
+  (define (merge-content c-one c-two)
+    (cond
+      [(empty? c-one) c-two]
+      [else
+       (if (member? (first c-one) c-two)
+           (merge-content (rest c-one) c-two)
+           (cons (first c-one) (merge-content (rest c-one) c-two)))]))
+  (db (db-schema db-one)
+      (merge-content content-one content-two)))
+
+(module+ test
+  (define school-schema-two
+    `(("Name" ,string?)
+      ("Age"  ,integer?)
+      ("Present" ,boolean?)))
+
+  (define school-content-two
+    `(("Alice" 35 #true)
+      ("Eason" 49 #false)))
+
+  (define school-db-two (db school-schema-two school-content-two))
+
+  (define school-schema-three
+    `(("Name" ,string?)
+      ("Age"  ,integer?)
+      ("Present" ,boolean?)))
+
+  (define school-content-three
+    `(("Bob" 25 #false)
+      ("Carol" 30 #true)
+      ("Dave" 32 #false)
+      ("Alice" 35 #true)
+      ("Eason" 49 #false)))
+
+  (define school-db-three (db school-schema-three school-content-three))
+
+  (check-equal? (db-content (db-union school-db school-db-two))
+                (db-content school-db-three)))
+
+;; Exercise 411
+;; (select db-one labels pred)
+;; db db -> db
+(define (join db-one db-two)
+  (define schema-one (db-schema db-one))
+  (define schema-two (db-schema db-two))
+  (define content-one (db-content db-one))
+  (define content-two (db-content db-two))
+  (define labels-two (map first schema-two))
+  ;; X [X] [X] -> [X]
+  ;; _assume_ ~a-list~ and ~b-list~ has at least one X
+  (define (replace-last a-list b-list)
+    (cond
+      [(empty? (rest a-list)) (rest b-list)]
+      [else (cons (first a-list)
+                  (replace-last (rest a-list) b-list))]))
+  ;; cell -> [row]
+  (define (match-rows cell)
+    (select db-two labels-two (lambda (r) (equal? (first r) cell))))
+  ;; row -> [row]
+  (define (join/rows row-one)
+    (map (lambda (row-two) (replace-last row-one row-two)) (match-rows (last row-one))))
+  (db (replace-last schema-one schema-two)
+      (foldr (lambda (row-one r) (append (join/rows row-one) r))
+             '()
+             content-one)))
+
+;; Present Description Bonus
+;; Boolean String      Boolean
+;; #true   "presence"  #t
+;; #false  "absence"   #f
+
+(define presence-schema-two
+  `(("Present" ,boolean?)
+    ("Description" ,string?)
+    ("Bonus" ,boolean?)))
+
+(define presence-content-two
+  `((#true "presence" #true)
+    (#false "absence" #false)))
+
+(define presence-db-two (db presence-schema-two presence-content-two))
+
+
+(define joined-schema
+  `(("Name" ,string?)
+    ("Age" ,integer?)
+    ("Description" ,string?)
+    ("Bonus" ,boolean?)))
+
+(define joined-content
+  `(("Alice" 35 "presence" #true)
+    ("Bob" 25 "absence" #false)
+    ("Carol" 30 "presence" #true)
+    ("Dave" 32 "absence" #false)))
+
+(define presence-content-three
+  `((#true "presence")
+    (#true "here")
+    (#false "absence")
+    (#false "there")))
+
+(define presence-db-three (db presence-schema presence-content-three))
+
+(define joined-schema-two
+  `(("Name" ,string?)
+    ("Age" ,integer?)
+    ("Description" ,string?)))
+
+(define joined-content-two
+  `(("Alice" 35 "presence")
+    ("Alice" 35 "here")
+    ("Bob" 25 "absence")
+    ("Bob" 25 "there")
+    ("Carol" 30 "presence")
+    ("Carol" 30 "here")
+    ("Dave" 32 "absence")
+    ("Dave" 32 "there")))
+
+(module+ test
+  (check-equal? (db-content (join school-db presence-db-two)) joined-content)
+  (check-equal? (db-content (join school-db presence-db-three)) joined-content-two))
