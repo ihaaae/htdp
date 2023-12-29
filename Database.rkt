@@ -236,10 +236,10 @@
   (db (filter keep? schema)
            (map row-project content)))
 
-  (module+ test
-    (check-equal?
-     (db-content (project school-db '("Name" "Present")))
-     projected-content))
+(module+ test
+  (check-equal?
+   (db-content (project school-db '("Name" "Present")))
+   projected-content))
 
 ;; Exercise 408
 ;; db [label] (row -> boolean) -> [row]
@@ -259,3 +259,62 @@
   (check-equal?
    (select school-db '("Name" "Present") (lambda (row) (third row)))
    selected-content))
+
+; Exercise 409
+;; db [label] -> db
+;; reorder all columns following the sequence in ~labels~
+(define (reorder db-one labels)
+  (define schema (db-schema db-one))
+  (define content (db-content db-one))
+  (define old-labels (map first schema))
+  ;; X [X] -> number
+  (define (index-of item a-list)
+    (foldl (lambda (i a r) (if (string=? item a) i r))
+           0
+           (build-list (length a-list) (lambda (x) x)) a-list))
+  ;; row -> row
+  (define (reorder/row row)
+    (map second (sort (map (lambda (l c) (list l c)) old-labels row)
+                      comp/x)))
+  ;; (list label X) (list label X) -> boolean
+  (define (comp/x a b)
+    (< (index-of (first a) labels) (index-of (first b) labels)))
+  (db (sort schema comp/x)
+      (map reorder/row content)))
+
+;; Present Description
+;; Boolean String
+;; #true   "presence"
+;; #false  "absence"
+
+(module+ test
+  (define labels-one (list "Description" "Present"))
+  (define reordered-schema (list (list "Description" string?) (list "Present" boolean?)))
+  (define reordered-content (list (list "presence" #true) (list "absence" #false)))
+  (check-equal? (db-schema (reorder presence-db labels-one)) reordered-schema)
+  (check-equal? (db-content (reorder presence-db labels-one)) reordered-content))
+
+;; db [label] -> db
+;; reorder all columns following the sequence in ~labels~
+;; only column appear both in ~db~ and ~labels~
+(define (reorder.v2 db-one labels)
+  (define old-labels (map first (db-schema db-one)))
+  (define filtered-labels (filter (lambda (l) (member? l old-labels)) labels))
+  (define filtered-db (project db-one filtered-labels))
+  (reorder filtered-db filtered-labels))
+
+;; Name    Age     Present
+;; String  Integer Boolean
+;; "Alice" 35      #true
+;; "Bob"   25      #false
+;; "Carol" 30      #true
+;; "Dave"  32      #false
+(module+ test
+  (define labels-two (list "Present" "Name" "Race"))
+  (define reordered-schema-two (list (list "Present" boolean?) (list "Name" string?)))
+  (define reordered-content-two (list (list #t "Alice")
+                                      (list #f "Bob")
+                                      (list #t "Carol")
+                                      (list #f "Dave")))
+  (check-equal? (db-schema (reorder.v2 school-db labels-two)) reordered-schema-two)
+  (check-equal? (db-content (reorder.v2 school-db labels-two)) reordered-content-two))
