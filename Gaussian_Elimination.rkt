@@ -85,3 +85,26 @@
 (module+ test
   (check-equal? (subtract (list 2 5 12 31) (list 2 2 3 10))
                 (list 3 9 21)))
+
+;; Exercise 466
+; A TM is an [NEList-of Equation]
+; such that the Equations are of decreasing length:
+;   n + 1, n, n - 1, ..., 2.
+; interpretation represents a triangular matrix
+
+; SOE -> TM
+; triangulates the given system of equations
+(define (triangulate M)
+  (cond
+    [(empty? (rest M)) M]
+    [else (cons (first M) (triangulate (map (lambda (e) (subtract e (first M)))
+                                            (rest M))))]))
+
+(module+ test
+  (define M-one (list (list 1 2)))
+  (define TM-one (list (list 1 2)))
+  (check-equal? (triangulate M-one) TM-one)
+  (define M-two (list (list 3 9 21) (list -3 -8 -19)))
+  (define TM-two (list (list 3 9 21) (list 1 2)))
+  (check-equal? (triangulate M-two) TM-two)
+  (check-equal? (triangulate M) triangular-M))
