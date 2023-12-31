@@ -62,3 +62,12 @@
 
 (module+ test
   (check-equal? (check-solution triangular-M S) #t))
+
+;; Exercise 464
+(define triangular-M.v2
+ (list (list 2  2  3   10)
+       (list    3  9   21)
+       (list   -3 -8  -19)))
+
+(module+ test
+  (check-equal? (check-solution triangular-M.v2 S) #t))
