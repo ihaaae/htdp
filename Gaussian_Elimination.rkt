@@ -74,13 +74,17 @@
 
 ;; Exercise 465
 ; equation equation -> equation
+; return a modified equation-one so that it starts with 0
 ; _assume_ ~equation-one~ and ~equation-two~ has the same length
 (define (subtract equation-one equation-two)
-  (define times (/ (first equation-one) (first equation-two)))
-  (rest (foldr (lambda (one two r)
-                 (cons (- one (* times two)) r))
-               '()
-               equation-one equation-two)))
+  (cond
+    [(= 0 (first equation-one)) (rest equation-one)]
+    [else
+     (define times (/ (first equation-one) (first equation-two)))
+     (rest (foldr (lambda (one two r)
+                    (cons (- one (* times two)) r))
+                  '()
+                  equation-one equation-two))]))
 
 (module+ test
   (check-equal? (subtract (list 2 5 12 31) (list 2 2 3 10))
@@ -108,3 +112,30 @@
   (define TM-two (list (list 3 9 21) (list 1 2)))
   (check-equal? (triangulate M-two) TM-two)
   (check-equal? (triangulate M) triangular-M))
+
+;; Exercise 467
+(define (triangulate.v2 M)
+  ; SOE -> SOE
+  ; _generative_
+  (define (keep-rotate M)
+    (cond
+      [(not (= 0 (first (first M)))) M]
+      [else (keep-rotate (append (rest M) (list (first M))))]))
+  (cond
+    [(empty? (rest M)) M]
+    [else (let ([rotated-M (keep-rotate M)])
+            (cons (first rotated-M)
+                  (triangulate.v2 (map (lambda (e) (subtract e (first rotated-M)))
+                                       (rest rotated-M)))))]))
+
+(module+ test
+  (define original-M (list (list   0 -5  -5)
+                           (list  -8 -4 -12)))
+  (define rotated-M (list (list  -8 -4 -12)
+                          (list   0 -5  -5)))
+  (check-equal? (triangulate.v2 (list (list 2  3  3 8)
+                                      (list 2  3 -2 3)
+                                      (list 4 -2  2 4)))
+                (list (list 2  3  3   8)
+                      (list   -8 -4 -12)
+                      (list      -5  -5))))
