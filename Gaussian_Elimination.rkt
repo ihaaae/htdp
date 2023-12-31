@@ -71,3 +71,17 @@
 
 (module+ test
   (check-equal? (check-solution triangular-M.v2 S) #t))
+
+;; Exercise 465
+; equation equation -> equation
+; _assume_ ~equation-one~ and ~equation-two~ has the same length
+(define (subtract equation-one equation-two)
+  (define times (/ (first equation-one) (first equation-two)))
+  (rest (foldr (lambda (one two r)
+                 (cons (- one (* times two)) r))
+               '()
+               equation-one equation-two)))
+
+(module+ test
+  (check-equal? (subtract (list 2 5 12 31) (list 2 2 3 10))
+                (list 3 9 21)))
