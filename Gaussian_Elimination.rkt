@@ -35,19 +35,22 @@
 (define (rhs e)
   (first (reverse e)))
 
+; X [list-of X] [list-of X] -> Number
+; _assume_ (length solution) >= (length lhs-equaiton)
+(define (plug-in lhs-equation solution)
+  (define (plug-in-reverse r-lhs-equation r-solution)
+    (cond
+      [(empty? r-lhs-equation) 0]
+      [else (+ (* (first r-lhs-equation) (first r-solution))
+               (plug-in-reverse (rest r-lhs-equation) (rest r-solution)))]))
+  (plug-in-reverse (reverse lhs-equation) (reverse solution)))
+
 ; SOE Solution -> boolean
 (define (check-solution equations solution)
-  ; X [list-of X] [list-of X] -> Number
-  ; _assume_ (length solution) >= (length lhs-equaiton)
-  (define (plug-in lhs-equation solution)
-    (cond
-      [(empty? lhs-equation) 0]
-      [else (+ (* (first lhs-equation) (first solution))
-               (plug-in (rest lhs-equation) (rest solution)))]))
   (cond
     [(empty? equations) #t]
     [else (if (= (rhs (first equations))
-                 (plug-in (reverse (lhs (first equations))) (reverse solution)))
+                 (plug-in (lhs (first equations)) solution))
               (check-solution (rest equations) solution)
               #f)]))
 
@@ -139,3 +142,61 @@
                 (list (list 2  3  3   8)
                       (list   -8 -4 -12)
                       (list      -5  -5))))
+
+;; Exercise 468
+(define (triangulate.v3 M)
+  ; SOE -> SOE
+  ; _generative_
+  (define (keep-rotate M)
+    (cond
+      [(not (= 0 (first (first M)))) M]
+      [else (keep-rotate (append (rest M) (list (first M))))]))
+  (cond
+    [(andmap (lambda (e) (= 0 (first e))) M) (error "no solution")]
+    [(empty? (rest M)) M]
+    [else (let ([rotated-M (keep-rotate M)])
+            (cons (first rotated-M)
+                  (triangulate.v3 (map (lambda (e) (subtract e (first rotated-M)))
+                                       (rest rotated-M)))))]))
+
+(module+ test
+  (define no-solution-M (list (list 2 2 2 6)
+                              (list 2 2 4 8)
+                              (list 2 2 1 2))))
+
+;; Exercise 409
+;; TM -> solution
+(define (solve TM-one)
+  (let ([current-lhs (lhs (first TM-one))]
+        [current-rhs (rhs (first TM-one))])
+  (cond
+    [(empty? (rest TM-one)) (list (/ current-rhs
+                                     (first current-lhs)))]
+    [else (let ([rest-solution (solve (rest TM-one))])
+            (cons (/ (- current-rhs
+                        (plug-in rest-solution (rest current-lhs)))
+                     (first current-lhs))
+                  rest-solution))])))
+
+(module+ test
+  (check-equal? (solve triangular-M) S))
+
+;; Exercise 409
+;; TM -> solution
+(define (solve.v2 TM-one)
+  (foldr (lambda (e r) (cons (/ (- (rhs e)
+                                   (plug-in r (rest (lhs e))))
+                                (first (lhs e))) r))
+         '()
+         TM-one))
+
+(module+ test
+  (check-equal? (solve.v2 triangular-M) S))
+
+;; Exercise 410
+;; SOE -> solution
+(define (gauss M-one)
+  (solve.v2 (triangulate M-one)))
+
+(module+ test
+  (check-equal? (gauss M) S))
