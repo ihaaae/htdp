@@ -117,3 +117,36 @@
   (check-equal? ((lambda (result) (string=? (first result) "The End"))
                  (hangman-guess 'a))
                 #true))
+
+;; Exercise 37.2.6
+;; hangman-guess : letter  ->  response
+;; to determine whether the player has won, lost, or may continue to play
+;; and, if so, which body part was lost, if no progress was made
+;; effects: (1) if the guess represents progress, update status-word
+;; (2) if not, shorten the body-parts-left by one
+;; (3) if guess in ~seen~ shorten the body-parts-left-by-one
+(define seen '())
+(define (hangman-guess.v2 guess)
+  (local ((define new-status (reveal-list chosen-word status-word guess)))
+    (cond
+      [(cons? (member guess seen))
+       (let ([next-part (first body-parts-left)])
+        (begin
+          (set! body-parts-left (rest body-parts-left))
+          (list "You have used this guess before." next-part status-word)))]
+      [(equal? new-status status-word)
+       (local ((define next-part (first body-parts-left)))
+         (begin
+           (set! body-parts-left (rest body-parts-left))
+           (set! seen (cons guess seen))
+           (cond
+             [(empty? body-parts-left) (list "The End" chosen-word)]
+             [else (list "Sorry" next-part status-word)])))]
+      [else
+       (cond
+         [(equal? new-status chosen-word) "You won"]
+         [else
+          (begin
+            (set! status-word new-status)
+            (set! seen (cons guess seen))
+            (list "Good guess!" status-word))])])))
