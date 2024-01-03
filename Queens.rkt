@@ -105,3 +105,31 @@
 
 (module+ test
   (check-equal? ((n-board? 4) (n-board 4)) #true))
+
+;; Exercise 482
+; Board N -> [Maybe [List-of QP]]
+; places n queens on board; otherwise, returns #false
+;; _generative_ place (n-1) queens to a smaller board ~(add-queen queen-one a-board)~
+;; ~queen-one~ is any position for ~(find-open-spots a-board)~
+(define (place-queens a-board n)
+  ;; Board [Maybe [List-of QP]] -> [Maybe [List-of QP]]
+  ;; return r if r is list; return #false if couldn't place ~n-1~ queens to ~a-board~
+  ;; return solutions otherwise
+  (define (place-queens/spot spot placed-board r)
+    (let ([result (place-queens placed-board (- n 1))])
+      (cond
+        [(cons? r) r]
+        [(boolean? result) #f]
+        [else (cons spot result)])))
+  (let* ([open-spots (find-open-spots a-board)]
+         [open-boards (map (lambda (spot) (add-queen a-board spot)) open-spots)])
+    (cond
+      [(= n 0) '()]
+      [else  (foldr place-queens/spot
+                    #false
+                    open-spots open-boards)])))
+
+(module+ test
+  (check-equal? ((n-queens-solution? 4) (place-queens (board0 4) 4)) #true))
+
+
