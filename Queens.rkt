@@ -53,3 +53,55 @@
   ;; (define 3-2 (make-posn 3 2))
   (check-equal? ((n-queens-solution? 4) (list 0-1 1-3 2-0 3-2)) #true))
 
+;; Exercise 483
+;; the second interpretaiton
+; N -> Board
+; creates the initial n by n board
+(struct board [dimension added])
+(define (board0 n) (board n '()))
+
+; Board QP -> Board
+; places a queen at qp on a-board
+(define (add-queen a-board qp)
+  (board (board-dimension a-board) (cons qp (board-added a-board))))
+
+; Board -> [List-of QP]
+; finds spots where it is still safe to place a queen
+(define (find-open-spots a-board)
+  (cond
+    [(empty? (board-added a-board)) (n-board (board-dimension a-board))]
+    [else (filter (lambda (open-spot)
+                    (not (threatening? (first (board-added a-board))
+                                       open-spot)))
+                  (find-open-spots (board (board-dimension a-board)
+                                          (rest (board-added a-board)))))]))
+
+ (module+ test
+   (check-equal? (map (lambda (p) (list (posn-x p) (posn-y p)))
+                      (find-open-spots (board 4 (list 0-1 1-3))))
+                 '((3 0) (3 2) (2 0))))
+
+;; Number Number -> [List-of QP]
+;; return a list where qp's position is (0*0 to n * n)
+(define (n-m-row n m)
+  (cond
+    [(= 1 n) (build-list m (lambda (y) (posn (- n 1) y)))]
+    [else (append (build-list m (lambda (y) (posn (- n 1) y)))
+                  (n-m-row (- n 1) m))]))
+(define (n-board n)
+  (n-m-row n n))
+
+;; n -> ([List-of QP] -> Boolean)
+(define (n-board? n)
+  (lambda (a-board)
+    (cond
+      [(not (= (* n n) (length a-board))) #false]
+      [else (andmap (lambda (p) (cons? (member
+                                        p
+                                        (map (lambda (x) (list (posn-x x) (posn-y x)))
+                                             a-board))))
+                    (for*/list ((i n) (j n))
+                      (list i j)))])))
+
+(module+ test
+  (check-equal? ((n-board? 4) (n-board 4)) #true))
