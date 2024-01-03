@@ -57,3 +57,63 @@
   (begin
     (hangman)
     (check-equal? (length status-word) (length chosen-word))))
+
+;; hangman-guess : letter  ->  response
+;; to determine whether the player has won, lost, or may continue to play
+;; and, if so, which body part was lost, if no progress was made
+;; effects: (1) if the guess represents progress, update status-word
+;; (2) if not, shorten the body-parts-left by one
+(define (hangman-guess guess)
+  (local ((define new-status (reveal-list chosen-word status-word guess)))
+    (cond
+      [(equal? new-status status-word)
+       (local ((define next-part (first body-parts-left)))
+         (begin
+           (set! body-parts-left (rest body-parts-left))
+           (cond
+             [(empty? body-parts-left) (list "The End" chosen-word)]
+             [else (list "Sorry" next-part status-word)])))]
+      [else
+       (cond
+         [(equal? new-status chosen-word) "You won"]
+         [else
+          (begin
+            (set! status-word new-status)
+            (list "Good guess!" status-word))])])))
+
+;; reveal-list : word word letter  ->  word
+;; to compute the new status word
+(define (reveal-list chosen-word status-word guess)
+  (local ((define (reveal-one chosen-letter status-letter)
+	    (cond
+	      [(symbol=? chosen-letter guess) guess]
+	      [else status-letter])))
+    (map reveal-one chosen-word status-word)))
+
+;; Exercise 37.2.4
+(begin
+  (set! chosen-word '(a))
+  (set! status-word (make-status))
+  (set! body-parts-left PARTS)
+  (check-equal? ((lambda (result) (string=? result "You won"))
+                 (hangman-guess 'a))
+                #true))
+
+(begin
+  (set! chosen-word '(i s))
+  (set! status-word (make-status))
+  (set! body-parts-left PARTS)
+  (check-equal? ((lambda (result) (string=? (first result) "Good guess!"))
+                 (hangman-guess 'i))
+                #true)
+  (check-equal? ((lambda (result) (string=? (first result) "Sorry"))
+                 (hangman-guess 'a))
+                #true))
+
+(begin
+  (set! chosen-word '(i s))
+  (set! status-word (make-status))
+  (set! body-parts-left '(head))
+  (check-equal? ((lambda (result) (string=? (first result) "The End"))
+                 (hangman-guess 'a))
+                #true))
