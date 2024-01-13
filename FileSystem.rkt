@@ -150,3 +150,12 @@
 (module+ test
   (check-equal? (find? TS.v3 "hang") #true)
   (check-equal? (find? Text.v3 "pycharm-log.txt") #false))
+
+;; exercise 340
+; Dir.v3 -> [List-of String]
+(define (ls a-dir)
+  (append (map (lambda (sub-dir) (dir.v3-name sub-dir)) (dir.v3-dirs a-dir))
+          (map (lambda (a-file) (file-name a-file)) (dir.v3-files a-dir))))
+
+(module+ test
+  (check-equal? (ls TS.v3) (list "Text" "Libs" "read!")))
