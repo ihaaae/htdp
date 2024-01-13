@@ -64,3 +64,24 @@
 (define part3.v2 "part3")
 (define Text.v2 (dir "Text" (list part1.v2 part2.v2 part3.v2)))
 (define TS.v2 (dir "TS" (list Text.v2 read!-1.v2 Libs.v2)))
+
+;; Exercise 333
+
+;; Dir.v2 -> Number
+;; ...
+(define (how-many.v2 dir)
+  (let ([content (dir-content dir)])
+    (how-many-LOFD content)))
+
+;; LOFD -> Number
+(define (how-many-LOFD lofd)
+  (cond
+    [(empty? lofd) 0]
+    [(string? (first lofd)) (+ 1 (how-many-LOFD (rest lofd)))]
+    [else (+ (how-many.v2 (first lofd))
+             (how-many-LOFD (rest lofd)))]))
+
+(module+ test
+  (check-equal? (how-many.v2 Libs.v2) 3)
+  (check-equal? (how-many.v2 TS.v2) 7))
+
