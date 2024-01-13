@@ -37,3 +37,30 @@
 (module+ test
   (check-equal? (how-many Libs) 3)
   (check-equal? (how-many TS) 7))
+
+;; Exercise 332
+
+(struct dir (name content))
+
+; A Dir.v2 is a structure: 
+;   (make-dir String LOFD)
+ 
+; An LOFD (short for list of files and directories) is one of:
+; – '()
+; – (cons File.v2 LOFD)
+; – (cons Dir.v2 LOFD)
+ 
+; A File.v2 is a String.
+
+(define hang.v2 "hang")
+(define draw.v2 "draw")
+(define Code.v2 (dir "Code" (list hang.v2 draw.v2)))
+(define read!.v2 "read!")
+(define Docs.v2 (dir "Docs" (list read!.v2)))
+(define Libs.v2 (dir "Libs" (list Code.v2 Docs.v2)))
+(define read!-1.v2 "read!")
+(define part1.v2 "part1")
+(define part2.v2 "part2")
+(define part3.v2 "part3")
+(define Text.v2 (dir "Text" (list part1.v2 part2.v2 part3.v2)))
+(define TS.v2 (dir "TS" (list Text.v2 read!-1.v2 Libs.v2)))
