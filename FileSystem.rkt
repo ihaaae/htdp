@@ -90,4 +90,37 @@
 ; A Dir.v2a is a structure:
 ;   (dir String Number Boolean LOFD)
 
-; same below;; Exercise 335(struct file [name size content]); A File.v3 is a structure: ;   (make-file String N String)(struct dir.v3 [name dirs files]); A Dir.v3 is a structure: ;   (make-dir.v3 String Dir* File*) ; A [List-of Dir.v3] is one of: ; – '(); – (cons Dir.v3 [List-of Dir.v3]) ; A File* is one of: ; – '(); – (cons File.v3 File*)(define hang.v3 (file "hang" 8 ""))(define draw.v3 (file "draw" 2 ""))(define Code.v3 (dir.v3 "Code" '() (list hang.v3 draw.v3)))(define read!.v3 (file "read!" 19 ""))(define Docs.v3 (dir.v3 "Docs" '() (list read!.v3)))(define Libs.v3 (dir.v3 "Libs" (list Code.v3 Docs.v3) '()))(define read!-1.v3 (file "read!" 10 ""))(define part1.v3 (file "part1" 99 ""))(define part2.v3 (file "part2" 52 ""))(define part3.v3 (file "part3" 17 ""))(define Text.v3 (dir.v3 "Text" '() (list part1.v3 part2.v3 part3.v3)))(define TS.v3 (dir.v3 "TS" (list Text.v3 Libs.v3) (list read!-1.v3)))
+; same below
+
+;; Exercise 335
+
+(struct file [name size content])
+; A File.v3 is a structure: 
+;   (make-file String N String)
+
+(struct dir.v3 [name dirs files])
+; A Dir.v3 is a structure: 
+;   (make-dir.v3 String Dir* File*)
+ 
+; A Dir* is one of: 
+; – '()
+; – (cons Dir.v3 [List-of Dir.v3])
+ 
+; A File* is one of: 
+; – '()
+; – (cons File.v3 File*)
+
+(define hang.v3 (file "hang" 8 ""))
+(define draw.v3 (file "draw" 2 ""))
+(define Code.v3 (dir.v3 "Code" '() (list hang.v3 draw.v3)))
+(define read!.v3 (file "read!" 19 ""))
+(define Docs.v3 (dir.v3 "Docs" '() (list read!.v3)))
+(define Libs.v3 (dir.v3 "Libs" (list Code.v3 Docs.v3) '()))
+(define read!-1.v3 (file "read!" 10 ""))
+(define part1.v3 (file "part1" 99 ""))
+(define part2.v3 (file "part2" 52 ""))
+(define part3.v3 (file "part3" 17 ""))
+(define Text.v3 (dir.v3 "Text" '() (list part1.v3 part2.v3 part3.v3)))
+(define TS.v3 (dir.v3 "TS" (list Text.v3 Libs.v3) (list read!-1.v3)))
+
+;; Exercise 336 and 337
