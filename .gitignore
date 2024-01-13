@@ -11,3 +11,6 @@ Ford_files
 torename.rkt
 temp.rkt
 1.ss
+compiled
+*.js
+*.css
