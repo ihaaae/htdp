@@ -85,3 +85,9 @@
   (check-equal? (how-many.v2 Libs.v2) 3)
   (check-equal? (how-many.v2 TS.v2) 7))
 
+;; Exercise 334
+
+; A Dir.v2a is a structure:
+;   (dir String Number Boolean LOFD)
+
+; same below
