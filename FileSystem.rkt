@@ -124,29 +124,3 @@
 (define TS.v3 (dir.v3 "TS" (list Text.v3 Libs.v3) (list read!-1.v3)))
 
 ;; Exercise 336 and 337
-; Dir.v3 -> Number
-(define (how-many.v3 dir)
-  (+ (foldl (lambda (one-dir n)
-              (+ (how-many.v3 one-dir) n))
-            0
-            (dir.v3-dirs dir))
-     (length (dir.v3-files dir))))
-
-(module+ test
-  (check-equal? (how-many.v3 Libs.v3) 3)
-  (check-equal? (how-many.v3 TS.v3) 7))
-
-;; Exercise 338
-;; skip
-
-;; Exercise 339
-; Dir.v3 string -> Boolean
-(define (find? a-dir a-file-name)
-  (or (ormap (lambda (one-dir) (find? one-dir a-file-name))
-             (dir.v3-dirs a-dir))
-      (ormap (lambda (a-file) (string=? (file-name a-file) a-file-name))
-             (dir.v3-files a-dir))))
-
-(module+ test
-  (check-equal? (find? TS.v3 "hang") #true)
-  (check-equal? (find? Text.v3 "pycharm-log.txt") #false))
