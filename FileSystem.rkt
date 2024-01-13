@@ -159,3 +159,14 @@
 
 (module+ test
   (check-equal? (ls TS.v3) (list "Text" "Libs" "read!")))
+
+;; Exercise 341
+;; Dir.v3 -> Numer
+;; the sum of size of all files and dirs in ~dir~
+(define (du dir)
+  (+ 1
+     (foldr (lambda (a-dir r) (+ r (du a-dir))) 0 (dir.v3-dirs dir))
+     (foldr (lambda (a-file r) (+ (file-size a-file) r)) 0 (dir.v3-files dir))))
+
+(module+ test
+  (check-equal? (du Libs.v3) (+ 8 2 1 19 1 1)))
