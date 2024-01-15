@@ -191,3 +191,38 @@
   (check-equal? (find (dir.v3 "one" '() '()) "read!") #f)
   (check-equal? (find Docs.v3 "read!") (list "Docs" "read!"))
   (check-equal? (find Libs.v3 "read!") (list "Libs" "Docs" "read!")))
+
+;; Dir.v3 String -> [Maybe [Listof Path]]
+;; a list of path of all target-file in dir-one
+(define (find-all dir-one target-file)
+  ;; dir.v3 string -> [Maybe [List-of Path]]
+  (define (find-all/files file-list target-file)
+    (if (cons? (filter (lambda (one-file) (string=? (file-name one-file) target-file)) file-list))
+        (list (list target-file))
+        #f))
+  ;; dir.v3 string -> [Maybe [List-of Path]]
+  (define (find-all/dirs dir-list target-file)
+    (foldr
+     (lambda (maybe-path result)
+       (cond
+         [(and (boolean? maybe-path) (boolean? result)) #f]
+         [(boolean? result) maybe-path]
+         [(boolean? maybe-path) result]
+         [else (append maybe-path result)]))
+     #f
+     (map (lambda (sub-dir) (find-all sub-dir target-file)) dir-list)))
+  (let ([files-result (find-all/files (dir.v3-files dir-one) target-file)]
+        [dirs-result (find-all/dirs (dir.v3-dirs dir-one) target-file)])
+    (cond
+      [(and (cons? files-result) (cons? dirs-result))
+       (append (map (lambda (one-path) (cons (dir.v3-name dir-one) one-path))
+                    files-result)
+               (map (lambda (one-path) (cons (dir.v3-name dir-one) one-path))
+                    dirs-result))]
+      [(cons? files-result) (map (lambda (one-path) (cons (dir.v3-name dir-one) one-path)) files-result)]
+      [(cons? dirs-result) (map (lambda (one-path) (cons (dir.v3-name dir-one) one-path)) dirs-result)]
+      [else #f])))
+
+(module+ test
+  (check-equal? (find-all Docs.v3 "read!") (list (list "Docs" "read!")))
+  (check-equal? (find-all TS.v3 "read!") (list (list "TS" "read!") (list "TS" "Libs" "Docs" "read!"))))
