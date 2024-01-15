@@ -170,3 +170,24 @@
 
 (module+ test
   (check-equal? (du Libs.v3) (+ 8 2 1 19 1 1)))
+
+;; Exercise 342
+
+; A Path is [List-of String].
+; interpretation directions into a directory tree
+
+;; Dir.v3 String -> Maybe Path
+(define (find a-dir a-file-name)
+  (cond
+    [(cons? (filter (lambda (a-file) (string=? a-file-name (file-name a-file)))
+                    (dir.v3-files a-dir)))
+     (list (dir.v3-name a-dir) a-file-name)]
+    [else (let ([candidates (filter (lambda (dir-two) (find? dir-two a-file-name)) (dir.v3-dirs a-dir))])
+            (cond
+              [(empty? candidates) #f]
+              [else (cons (dir.v3-name a-dir) (find (first candidates) a-file-name))]))]))
+
+(module+ test
+  (check-equal? (find (dir.v3 "one" '() '()) "read!") #f)
+  (check-equal? (find Docs.v3 "read!") (list "Docs" "read!"))
+  (check-equal? (find Libs.v3 "read!") (list "Libs" "Docs" "read!")))
