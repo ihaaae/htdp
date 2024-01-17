@@ -248,3 +248,14 @@
                                      (list "Code" "hang")
                                      (list "Code" "draw")
                                      (list "Docs" "read!"))))
+
+;; Exercise 344
+;; Dir.v3 -> [List-of Path]
+;; ...
+(define (find-all.v2 a-dir target)
+   (let ([candidates (filter (lambda (path) (string=? target (last path)))
+                             (ls-R a-dir))])
+     (cond
+       [(empty? candidates) #false]
+       [else (map (lambda (candidate) (cons (dir.v3-name a-dir) candidate))
+                  candidates)])))
