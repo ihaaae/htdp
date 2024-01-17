@@ -53,32 +53,48 @@
 (module+ test
   (define bb1 (Or (Not #true) (And #false #false)))
   (check-equal? (eval-bool-expression bb1) #false))
- 
-;; (define (atom? s) (number? s))
-;; (define WRONG "wrong input")
-;; 
-;; ; S-expr -> BSL-expr
-;; (define (parse s)
-;;   (cond
-;;     [(atom? s) (parse-atom s)]
-;;     [else (parse-sl s)]))
-;; 
-;; (check-expect (parse 1) 1)
-;; (check-expect (parse '(+ 1 2)) (make-add 1 2))
-;;  
-;; ; SL -> BSL-expr 
-;; (define (parse-sl s)
-;;   (cond
-;;     [(and (consists-of-3 s) (symbol? (first s)))
-;;      (cond
-;;        [(symbol=? (first s) '+)
-;;         (make-add (parse (second s)) (parse (third s)))]
-;;        [(symbol=? (first s) '*)
-;;         (make-mul (parse (second s)) (parse (third s)))]
-;;        [else (error WRONG)])]
-;;     [else (error WRONG)]))
-;; 
-;; (check-expect (parse-sl '(+ 1 2)) (make-add 1 2))
-;; (check-expect (parse-sl '(* 1 2)) (make-mul 1 2))
-;; (check-error (parse-sl '(- 1 2)))
-;; (check-error (parse-sl '(+ 1 2 3)))
+
+;; Exercise 349, 350
+(define (atom? s) (number? s))
+(define WRONG "wrong input")
+
+;; S-expr -> BSL-expr
+(define (parse s)
+  (cond
+    [(atom? s) (parse-atom s)]
+    [else (parse-sl s)]))
+
+(module+ test
+ (check-equal? (parse 1) 1)
+ (check-equal? (parse '(+ 1 2)) (add 1 2)))
+  
+; SL -> BSL-expr 
+(define (parse-sl s)
+  (cond
+    [(and (consists-of-3 s) (symbol? (first s)))
+     (cond
+       [(symbol=? (first s) '+)
+        (add (parse (second s)) (parse (third s)))]
+       [(symbol=? (first s) '*)
+        (mul (parse (second s)) (parse (third s)))]
+       [else (error WRONG)])]
+    [else (error WRONG)]))
+
+(module+ test
+  (check-equal? (parse-sl '(+ 1 2)) (add 1 2))
+  (check-equal? (parse-sl '(* 1 2)) (mul 1 2)))
+
+; Atom -> BSL-expr 
+(define (parse-atom s)
+  (cond
+    [(number? s) s]
+    [(string? s) (error WRONG)]
+    [(symbol? s) (error WRONG)]))
+
+(module+ test
+  (check-equal? (parse-atom 1) 1))
+
+;; SL -> Boolean
+(define (consists-of-3 s)
+  (and (cons? s) (cons? (rest s)) (cons? (rest (rest s)))
+       (empty? (rest (rest (rest s))))))
