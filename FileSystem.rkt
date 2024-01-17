@@ -226,3 +226,25 @@
 (module+ test
   (check-equal? (find-all Docs.v3 "read!") (list (list "Docs" "read!")))
   (check-equal? (find-all TS.v3 "read!") (list (list "TS" "read!") (list "TS" "Libs" "Docs" "read!"))))
+
+;; Exercise 343
+;; Dir.v3 -> [Listof Path]
+;; list all files and dirs under a-dir
+(define (ls-R a-dir)
+  ;; List-of dirs.v3 -> [List-of Path]
+  (define (ls-R/dirs dir-list)
+    (match dir-list
+      ['() '()]
+      [(cons head tail)
+       (append (map (lambda (result) (cons (dir.v3-name head) result))
+                    (ls-R head))
+               (ls-R/dirs tail))]))
+    (append (map (lambda (sub) (list sub)) (ls a-dir))
+            (ls-R/dirs (dir.v3-dirs a-dir))))
+
+(module+ test
+  (check-equal? (ls-R Libs.v3) (list (list "Code")
+                                     (list "Docs")
+                                     (list "Code" "hang")
+                                     (list "Code" "draw")
+                                     (list "Docs" "read!"))))
