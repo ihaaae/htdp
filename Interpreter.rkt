@@ -28,29 +28,32 @@
   (define be1 (add (mul -2 -3) 33))
   (check-equal? (eval-expression be1) 39))
 
-;; ;; Exercise 348
-;; ;bsl-bool is
-;; ;boolean
-;; ;and
-;; ;or
-;; ;not
-;; (define-struct And [left right])
-;; (define-struct Or [left right])
-;; (define-struct Not [value])
-;; 
-;; (define (eval-bool-expression bsl-bool)
-;;   (cond
-;;     [(boolean? bsl-bool) bsl-bool]
-;;     [(And? bsl-bool) (and (eval-bool-expression (And-left bsl-bool))
-;;                           (eval-bool-expression (And-right bsl-bool)))]
-;;     [(Or? bsl-bool) (or (eval-bool-expression (Or-left bsl-bool))
-;;                           (eval-bool-expression (Or-right bsl-bool)))]
-;;     [(Not? bsl-bool) (not (eval-bool-expression (Not-value bsl-bool)))]))
-;; 
-;; (define bb1 (make-Or (make-Not #true) (make-And #false #false)))
-;; ;(check-expect (eval-bool-expression bb1) #false)
-;; 
-;; 
+;; Exercise 348
+;; Boolean BSL is
+;; Boolean
+;; (And Boolean)
+;; (Or Boolean)
+;; (Not Boolean)
+(struct And [left right])
+(struct Or [left right])
+(struct Not [value])
+
+;; Boolean-value is
+;; Boolean
+
+(define (eval-bool-expression bsl-bool)
+  (cond
+    [(boolean? bsl-bool) bsl-bool]
+    [(And? bsl-bool) (and (eval-bool-expression (And-left bsl-bool))
+                          (eval-bool-expression (And-right bsl-bool)))]
+    [(Or? bsl-bool) (or (eval-bool-expression (Or-left bsl-bool))
+                          (eval-bool-expression (Or-right bsl-bool)))]
+    [(Not? bsl-bool) (not (eval-bool-expression (Not-value bsl-bool)))]))
+
+(module+ test
+  (define bb1 (Or (Not #true) (And #false #false)))
+  (check-equal? (eval-bool-expression bb1) #false))
+ 
 ;; (define (atom? s) (number? s))
 ;; (define WRONG "wrong input")
 ;; 
