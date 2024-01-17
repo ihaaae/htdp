@@ -139,3 +139,21 @@
 (module+ test
   (check-equal? (numeric? be1) #true)
   (check-equal? (numeric? bve1) #false))
+
+;; Exercise 354
+;BSL-var-expr -> Number
+(define (eval-variable bsl-var-expr)
+  (if (numeric? bsl-var-expr)
+      (eval-expression bsl-var-expr)
+      (error WRONG)))
+
+;; BSL-var-expr AL -> Number
+(define (eval-variable* ex da)
+  (define (subst/al ex al)
+    (match al
+      ['() ex]
+      [(cons head tail) (subst/al (subst ex (first head) (second head)) tail)]))
+  (eval-variable (subst/al ex da)))
+
+(module+ test
+  (check-equal? (eval-variable* bve1 (list (list 'x 3))) 7))
