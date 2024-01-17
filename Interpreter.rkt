@@ -98,3 +98,31 @@
 (define (consists-of-3 s)
   (and (cons? s) (cons? (rest s)) (cons? (rest (rest s)))
        (empty? (rest (rest (rest s))))))
+
+;; Exercise 351
+;; S-expr -> BSL-value
+(define (interpreter-expr a-sexpr)
+  (eval-expression (parse a-sexpr)))
+
+;; Exercise 352
+; A BSL-var-expr is one of: 
+; – Number
+; – Symbol 
+; – (make-add BSL-var-expr BSL-var-expr)
+; – (make-mul BSL-var-expr BSL-var-expr)
+
+;BSL-var-expr symbol number -> BSL-var-expr
+(define (subst ex x v)
+  (cond
+    [(symbol? ex) (if (symbol=? x ex) v ex)]
+    [(number? ex) ex]
+    [(add? ex) (add (subst (add-left ex) x v) (subst (add-right ex) x v))]
+    [(mul? ex) (mul (subst (mul-left ex) x v) (subst (mul-right ex) x v))]
+    [else (error WRONG)]))
+
+(module+ test
+  (define bve1 (add (mul 'x 2) 1))
+  (check-equal? (subst 'x 'x 3) 3)
+  (check-equal? (subst 'x 'y 2) 'x)
+  (check-equal? (subst 2 'y 3) 2)
+  (check-equal? (subst bve1 'x 3) (add (mul 3 2) 1)))
