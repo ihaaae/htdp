@@ -126,3 +126,16 @@
   (check-equal? (subst 'x 'y 2) 'x)
   (check-equal? (subst 2 'y 3) 2)
   (check-equal? (subst bve1 'x 3) (add (mul 3 2) 1)))
+
+;; Exercise 353
+;BSL-var-expr -> Boolean
+(define (numeric? ex)
+  (cond
+    [(symbol? ex) #false]
+    [(number? ex) #true]
+    [(add? ex) (and (numeric? (add-left ex)) (numeric? (add-right ex)))]
+    [(mul? ex) (and (numeric? (mul-left ex)) (numeric? (mul-right ex)))]))
+
+(module+ test
+  (check-equal? (numeric? be1) #true)
+  (check-equal? (numeric? bve1) #false))
