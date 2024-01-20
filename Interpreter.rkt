@@ -157,3 +157,26 @@
 
 (module+ test
   (check-equal? (eval-variable* bve1 (list (list 'x 3))) 7))
+
+;; Exercise 355
+;BSL-var-expr AL -> Number
+(define (eval-var-lookup e da)
+  (cond
+    [(symbol? e) (second (assq e da))]
+    [(number? e) e]
+    [(add? e) (+ (eval-var-lookup (add-left e) da)
+                 (eval-var-lookup (add-right e) da))]
+    [(mul? e) (* (eval-var-lookup ))]))
+
+
+
+
+
+
+
+
+
+
+
+
+
